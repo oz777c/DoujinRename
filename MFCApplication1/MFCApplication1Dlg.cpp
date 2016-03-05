@@ -118,6 +118,7 @@ void CMFCApplication1Dlg::OnBnClickedButton1()
 		CDoujinFileRename::joinpath(fileName, drive, path, file, ext);
 
 		BOOL bWorking = finder.FindFile(fileName);
+		if( bWorking ) m_fileList.Initialize();
 		while( bWorking ){
 			bWorking = finder.FindNextFile();
 			if( finder.IsDirectory() == TRUE ) continue;

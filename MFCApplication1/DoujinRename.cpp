@@ -117,7 +117,9 @@ void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool
 	//オリジナル
 	const CString title_original[] = {
 		"(オリジナル)"
-		"(original)"
+		, "(original)"
+		, "[オリジナル]"
+		, "[original]"
 		, ""
 	};
 	if( bOriginalDelete ){
@@ -137,16 +139,18 @@ void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool
 	CDoujinFileRename::DeleteTailParenthesesInfo(file, title_yorozu);
 
 	const int start = CDoujinFileRename::GetAuthorEndNum(file);
-	while( file.Find('(', start) != -1 ){
-		const int search_s = file.Find('(', start);
-		const int search_e = file.Find(')', search_s);
-		if( search_e == -1 ) break;
-		if( search_e <= search_s ) break;
+	if( start != -1 ) {
+		while( file.Find('(', start) != -1 ){
+			const int search_s = file.Find('(', start);
+			const int search_e = file.Find(')', search_s);
+			if( search_e == -1 ) break;
+			if( search_e <= search_s ) break;
 
-		file.Delete(search_s, 1);
-		file.Insert(search_s, '[');
-		file.Delete(search_e, 1);
-		file.Insert(search_e, ']');
+			file.Delete(search_s, 1);
+			file.Insert(search_s, '[');
+			file.Delete(search_e, 1);
+			file.Insert(search_e, ']');
+		}
 	}
 }
 
