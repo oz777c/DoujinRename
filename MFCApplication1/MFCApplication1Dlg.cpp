@@ -36,6 +36,8 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CMFCApplication1Dlg::OnBnClickedButton2)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CMFCApplication1Dlg::OnLbnSelchangeList1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CMFCApplication1Dlg::OnLbnSelchangeList2)
+	ON_BN_CLICKED(IDC_BUTTON4, &CMFCApplication1Dlg::OnBnClickedButton4)
+	ON_BN_CLICKED(IDC_BUTTON5, &CMFCApplication1Dlg::OnBnClickedButton5)
 END_MESSAGE_MAP()
 
 
@@ -50,7 +52,14 @@ BOOL CMFCApplication1Dlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-	// TODO: 初期化をここに追加します。
+	((CButton*)GetDlgItem(IDC_CHECK1))->SetCheck(m_fileList.isDeleteHeadParenthesesInfo() ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_CHECK2))->SetCheck(m_fileList.isDeleteTailParenthesesInfo_DLEDITION() ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_CHECK3))->SetCheck(m_fileList.isFixTailParenthesesInfo_UNCENSORED() ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_CHECK4))->SetCheck(m_fileList.isFixTailParenthesesInfo_ORIGINALTITLE() ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_CHECK5))->SetCheck(m_fileList.isDeleteTailSpace() ? BST_CHECKED : BST_UNCHECKED);
+
+	((CButton*)GetDlgItem(IDC_RADIO1))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 0 ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_RADIO2))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 1 ? BST_CHECKED : BST_UNCHECKED);
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -137,20 +146,55 @@ void CMFCApplication1Dlg::OnBnClickedButton1()
 			POSITION pos = list.GetHeadPosition();
 			while( pos ) pBox->AddString(list.GetNext(pos));
 		}
-
-		{//変換
-			CStringList list;
-			m_fileList.GetRenameFileStringList(list, false);
-
-			CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST2));
-			POSITION pos = list.GetHeadPosition();
-			while( pos ) pBox->AddString(list.GetNext(pos));
-		}
-
 	} while( false );
-}
+}//2017/04/14 okamoto
 
 void CMFCApplication1Dlg::OnBnClickedButton2()
+{
+
+	m_fileList.SetDeleteHeadParenthesesInfo(((CButton*)GetDlgItem(IDC_CHECK1))->GetCheck() == BST_CHECKED);
+	m_fileList.SetDeleteTailParenthesesInfo_DLEDITION(((CButton*)GetDlgItem(IDC_CHECK2))->GetCheck() == BST_CHECKED);
+	m_fileList.SetFixTailParenthesesInfo_UNCENSORED(((CButton*)GetDlgItem(IDC_CHECK3))->GetCheck() == BST_CHECKED);
+	m_fileList.SetFixTailParenthesesInfo_ORIGINALTITLE(((CButton*)GetDlgItem(IDC_CHECK4))->GetCheck() == BST_CHECKED);
+	m_fileList.SetDeleteTailSpace(((CButton*)GetDlgItem(IDC_CHECK5))->GetCheck() == BST_CHECKED);
+	m_fileList.SetFixTailParenthesesInfo_ORIGINAL_MODE(((CButton*)GetDlgItem(IDC_RADIO1))->GetCheck() == BST_CHECKED ? 0 : 1);
+
+	{//変換
+		CStringList list;
+		m_fileList.GetRenameFileStringList(list, false);
+
+		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+		pBox->ResetContent();
+		POSITION pos = list.GetHeadPosition();
+		while( pos ) pBox->AddString(list.GetNext(pos));
+	}
+}
+
+
+void CMFCApplication1Dlg::OnBnClickedButton3()
+{
+	OnOK();
+}
+
+void CMFCApplication1Dlg::OnLbnSelchangeList1()
+{
+	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+	const int sel = pBox->GetCurSel();
+
+	const CString autor = m_fileList.GetAuthor(sel, false);
+	((CStatic*)GetDlgItem(IDC_STATIC_AUTOR1))->SetWindowText(autor);
+}
+
+void CMFCApplication1Dlg::OnLbnSelchangeList2()
+{
+	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST2));
+	const int sel = pBox->GetCurSel();
+
+	const CString autor = m_fileList.GetAuthor(sel, false);
+	((CStatic*)GetDlgItem(IDC_STATIC_AUTOR2))->SetWindowText(autor);
+}
+
+void CMFCApplication1Dlg::OnBnClickedButton4()
 {
 	CStringList fileNameList, renameFileList;
 	m_fileList.GetFileStringList(fileNameList, true);
@@ -186,25 +230,16 @@ void CMFCApplication1Dlg::OnBnClickedButton2()
 }
 
 
-void CMFCApplication1Dlg::OnBnClickedButton3()
+void CMFCApplication1Dlg::OnBnClickedButton5()
 {
-	OnOK();
-}
+	{
+		CStringList list;
+		m_fileList.GetFileStringList(list, false);
 
-void CMFCApplication1Dlg::OnLbnSelchangeList1()
-{
-	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
-	const int sel = pBox->GetCurSel();
+		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+		pBox->ResetContent();
+		POSITION pos = list.GetHeadPosition();
+		while( pos ) pBox->AddString(list.GetNext(pos));
+	}
 
-	const CString autor = m_fileList.GetAuthor(sel, false);
-	((CStatic*)GetDlgItem(IDC_STATIC_AUTOR1))->SetWindowText(autor);
-}
-
-void CMFCApplication1Dlg::OnLbnSelchangeList2()
-{
-	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST2));
-	const int sel = pBox->GetCurSel();
-
-	const CString autor = m_fileList.GetAuthor(sel, false);
-	((CStatic*)GetDlgItem(IDC_STATIC_AUTOR2))->SetWindowText(autor);
 }

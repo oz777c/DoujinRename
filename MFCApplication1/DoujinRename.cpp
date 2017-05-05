@@ -178,15 +178,23 @@ void CDoujinFileRename::DeleteTailParenthesesInfo(CString &file, const CString t
 	}
 }
 
+//ファイル名から末尾のスペース文字を消す
+void CDoujinFileRename::DeleteTailSpace(CString &result)
+{
+	result.Trim();
+}
+
+
 //ファイル名を変更する
-CString CDoujinFileRename::Rename(const CString &file)
+CString CDoujinFileRename::Rename(const CString &file) const
 {
 	CString result = file;
 
-	DeleteHeadParenthesesInfo(result);
-	DeleteTailParenthesesInfo_DLEDITION(result);
-	FixTailParenthesesInfo_UNCENSORED(result);
-	FixTailParenthesesInfo_ORIGINALTITLE(result, true);
+	if( m_deleteHeadParenthesesInfo_Flg ) DeleteHeadParenthesesInfo(result);
+	if( m_deleteTailParenthesesInfo_DLEDITION_Flg ) DeleteTailParenthesesInfo_DLEDITION(result);
+	if( m_deleteTailSpace_Flg ) DeleteTailSpace(result);
+	if( m_fixTailParenthesesInfo_UNCENSORED_Flg ) FixTailParenthesesInfo_UNCENSORED(result);
+	if( m_fixTailParenthesesInfo_ORIGINALTITLE_Flg ) FixTailParenthesesInfo_ORIGINALTITLE(result, m_fixTailParenthesesInfo_ORIGINAL_MODE == 0);
 
 	return result;
 }
@@ -234,6 +242,15 @@ void CDoujinFileRename::Initialize()
 {
 	m_targetFileList.RemoveAll();
 	m_resultFileNameList.RemoveAll();
+
+	m_deleteHeadParenthesesInfo_Flg = true;
+	m_deleteTailParenthesesInfo_DLEDITION_Flg = true;
+	m_fixTailParenthesesInfo_ORIGINALTITLE_Flg = true;
+	m_fixTailParenthesesInfo_UNCENSORED_Flg = true;
+	m_deleteTailSpace_Flg = true;
+	m_addTailParentheseInfo_ORIGINAL_Flg = true;
+
+	m_fixTailParenthesesInfo_ORIGINAL_MODE = 1;
 }
 
 //該当ファイルをリストに追加
@@ -311,7 +328,14 @@ void CDoujinFileRename::SetResultName()
 		CString drive, path, file, ext;
 		CDoujinFileRename::splitpath(str, drive, path, file, ext);
 
-		const CString rename = CDoujinFileRename::Rename(file);
+		CString rename = Rename(file);
+
+		int count = 0;
+		while( count < 100 ){
+			if( m_resultFileNameList.Find(rename) == NULL ) break;
+			count++;
+		}
+		if( count != 0 ) rename.AppendFormat("(%d)", count);
 
 		CString result;
 		joinpath(result, drive, path, rename, ext);
