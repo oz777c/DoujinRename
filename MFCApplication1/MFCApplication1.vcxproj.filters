@@ -36,6 +36,9 @@
     <ClInclude Include="DoujinRename.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Dialog1.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCApplication1.cpp">
@@ -48,6 +51,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="DoujinRename.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog1.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
