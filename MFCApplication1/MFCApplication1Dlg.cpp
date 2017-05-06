@@ -356,16 +356,8 @@ void CMFCApplication1Dlg::OnBnClickedButton8()
 
 		for( int lpcnt = 0; lpcnt < NUMBER; lpcnt++ ) temp[lpcnt].DeleteFile();
 
-		AfxMessageBox("Á‚µ‚Ü‚µ‚½");
-
-
-		m_fileList.RemoveFile(sel);
-		pBox->ResetContent();
-		POSITION pos = m_fileList.GetList().GetHeadPosition();
-		while( pos ){
-			const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
-			pBox->AddString(fileInfo.GetFileName(true));
-		}
+		m_fileList.RemoveFile(selectStr, true);
+		ResetList();
 	} while( false );
 }
 

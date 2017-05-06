@@ -103,7 +103,7 @@ public:
 	void AddFileName(const CString &targetFile);
 	void SetResultName();
 	void CopyToResultName();
-	void RemoveFile(const int sel);
+	void RemoveFile(const CString &selectString, bool bResult);
 
 	CString GetFileName(const CString &selectString, bool bResult, bool bFullPath) const;
 	void SetResultFileName(const CString &selectString, bool bResult, const CString &file);

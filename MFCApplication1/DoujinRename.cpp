@@ -476,8 +476,17 @@ void CDoujinFileRename::CopyToResultName()
 	while( pos ) m_fileList.GetNext(pos).ResetResultFileName();
 }
 
-void CDoujinFileRename::RemoveFile(const int sel)
+void CDoujinFileRename::RemoveFile(const CString &selectString, bool bResult)
 {
-	POSITION pos = m_fileList.FindIndex(sel);
-	if( pos != NULL ) m_fileList.RemoveAt(pos);
+	do {
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			POSITION delPos = pos;
+			const CFileName &fileName = m_fileList.GetNext(pos);
+			if( !fileName.isSelectFile(selectString, bResult) ) continue;
+
+			m_fileList.RemoveAt(delPos);
+			break;
+		}
+	} while( false );
 }
