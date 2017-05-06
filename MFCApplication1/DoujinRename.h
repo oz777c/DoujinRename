@@ -3,7 +3,7 @@
 class CDoujinFileRename
 {
 public:
-	//サムネイルの変換用
+	//サムネイルの変換用///////////////////////////////////////////////////////////////////////////////////////////////
 	class CThumbnailCtrl{
 		bool m_enableRenameFlg;
 		CString m_targetfile;//対象のドライブ、パス、ファイル名
@@ -11,58 +11,72 @@ public:
 		CThumbnailCtrl(){};
 	public:
 		CThumbnailCtrl(bool f, CString &s){ m_enableRenameFlg = f; m_targetfile = s; };
+		void FixFileName(const CString &newfile);
+		void DeleteFile();
+	};
 
-		void FixFileName(const CString &newfile){
-			if( !m_enableRenameFlg ) return;
+	//ファイル管理/変換用///////////////////////////////////////////////////////////////////////////////////////////////
+	class CFileName {
+		CString m_targetFileName;	//	元ファイル名称
+		CString m_resultFileName;	//	変換後ファイル名称
+		CString m_ext;				//	拡張子
+		bool m_renameTargetFlg;
 
-			CString drive, path, file, ext;
-			CDoujinFileRename::splitpath(m_targetfile, drive, path, file, ext);
+		//	()()...()[サークル/作者名] 作品名 ()...()のフォーマット限定
+		//パスと拡張子は取り除いてください。
+	public:
+		//著者関連
+		static bool GetAuthorStartEndNum(const CString &file, int &start, int &end);
+		static int GetAuthorStartNum(const CString &file);
+		static int GetAuthorEndNum(const CString &file);
+		static CString GetAuthor(const CString &file);
+		static bool GetOriginalTitleStartEndNum(const CString &file, int &start, int &end);
+		static CString GetOriginalTitle(const CString &file);
 
-			CString target;
-			CDoujinFileRename::joinpath(target, drive, path, file, ".*");
+		//ファイル名変更関連
+		static void DeleteHeadParenthesesInfo(CString &file);
+		static void DeleteTailParenthesesInfo_DLEDITION(CString &file);
+		static void DeleteTailSpace(CString &result);
+		static void FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool bOriginalDelete);
+		static void FixTailParenthesesInfo_UNCENSORED(CString &file);
 
-			CFileFind finder;
-			BOOL bWorking = finder.FindFile(target);
-			while( bWorking ){
-				bWorking = finder.FindNextFile();
-				if( finder.IsDirectory() == TRUE ) continue;
-				if( finder.IsDots() == TRUE ) continue;
+		static void FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace);
+		static void DeleteTailParenthesesInfo(CString &file, const CString tbl[]);
 
-				const CString sourceFile = finder.GetFilePath();
-				CDoujinFileRename::splitpath(sourceFile, drive, path, file, ext);
-				CDoujinFileRename::joinpath(target, drive, path, newfile, ext);
 
-				MoveFile(sourceFile, target);
-			}
-			finder.Close();
-		};
-		void DeleteFile(){
-			if( !m_enableRenameFlg ) return;
+	public:
+		CFileName(){};
+		CFileName(const CString &file, const CString &ext){ m_targetFileName = m_resultFileName = file;	m_renameTargetFlg = true; m_ext = ext; };
 
-			CString drive, path, file, ext;
-			CDoujinFileRename::splitpath(m_targetfile, drive, path, file, ext);
+		bool isChangeFilename() const { return m_targetFileName != m_resultFileName; };
+		bool isRenameTarget() const { return m_renameTargetFlg; };
+		bool isRename() const { return isChangeFilename() && isRenameTarget(); };
+		CString GetExt() const {return m_ext;};
+		CString GetFileName(bool bResult) const { return bResult ? m_resultFileName : m_targetFileName; };
+		CString GetRename(const CDoujinFileRename &info) const;
+		bool isSelectFile(const CString& selectString, bool bResult) const;
+		CString GetAuthor() const { return GetAuthor(m_targetFileName); };
+		CString GetOriginalTitle() const { return GetOriginalTitle(m_targetFileName); };
 
-			CString target;
-			CDoujinFileRename::joinpath(target, drive, path, file, ".*");
+		void SetRenameTarget(bool sw){m_renameTargetFlg = sw;};
+		void ResetResultFileName() {m_resultFileName = m_targetFileName;};
+		void Rename(const CDoujinFileRename &info) { m_resultFileName = GetRename(info); };
+		void SetResultFileName(const CString &filename){ m_resultFileName = filename; };
 
-			CFileFind finder;
-			BOOL bWorking = finder.FindFile(target);
-			while( bWorking ){
-				bWorking = finder.FindNextFile();
-				if( finder.IsDirectory() == TRUE ) continue;
-				if( finder.IsDots() == TRUE ) continue;
-
-				::DeleteFile(finder.GetFilePath());
-			}
-			finder.Close();
+		CFileName & operator= (const CFileName&a){
+			m_targetFileName = a.m_targetFileName;
+			m_resultFileName = a.m_resultFileName;
+			m_renameTargetFlg = a.m_renameTargetFlg;
+			m_ext = a.m_ext;
+			return *this;
 		};
 	};
 private:
-	//	()()...()[サークル/作者名] 作品名 ()...()のフォーマット限定
-	//パスと拡張子は取り除いてください。
-
-	CStringList m_targetFileList;
-	CStringList m_resultFileNameList;
+	//CStringList m_targetFileList;
+	//CStringList m_resultFileNameList;
+	CList<CFileName> m_fileList;
+	CString m_drive;
+	CString m_path;
 
 	bool m_deleteHeadParenthesesInfo_Flg;
 	bool m_deleteTailParenthesesInfo_DLEDITION_Flg;
@@ -73,47 +87,29 @@ private:
 
 	BYTE m_fixTailParenthesesInfo_ORIGINAL_MODE;
 
-	//著者関連
-	static bool GetAuthorStartEndNum(const CString &file, int &start, int &end);
-	static int GetAuthorStartNum(const CString &file);
-	static int GetAuthorEndNum(const CString &file);
-	static CString GetAuthor(const CString &file);
-	static bool GetOriginalTitleStartEndNum(const CString &file, int &start, int &end);
-	static CString GetOriginalTitle(const CString &file);
-
-	//ファイル名変更関連
-	static void DeleteHeadParenthesesInfo(CString &file);
-	static void DeleteTailParenthesesInfo_DLEDITION(CString &file);
-	static void DeleteTailSpace(CString &result);
-	static void FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool bOriginalDelete);
-	static void FixTailParenthesesInfo_UNCENSORED(CString &file);
-
-	static void FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace);
-	static void DeleteTailParenthesesInfo(CString &file, const CString tbl[]);
-
 	CString Rename(const CString &result) const;
+
+public:
+	static void splitpath(const CString &fullPath, CString &drive, CString &path, CString &file, CString &ext);
+	static void joinpath(CString &fullPath, const CString &drive, const CString &path, const CString &file, const CString &ext);
 
 public:
 	CDoujinFileRename();
 	~CDoujinFileRename();
 
+	CString GetDrive() const { return m_drive; };
+	CString GetPath() const { return m_path; };
 	void Initialize();
 	void AddFileName(const CString &targetFile);
 	void SetResultName();
 	void CopyToResultName();
 	void RemoveFile(const int sel);
 
-	void GetFileStringList(CStringList &resultList, bool bfullpath) const;
-	void GetRenameFileStringList(CStringList &resultList, bool bfullpath) const;
-
-	CString GetFileName(int n, bool  bResult, bool bFullPath) const;
-	void SetFileName(int n, const CString &file);
-	CString GetAuthor(int n, bool bResult) const;
-	CString GetOriginalTitle(int n, bool bResult) const;
-
-
-	static void splitpath(const CString &fullPath, CString &drive, CString &path, CString &file, CString &ext);
-	static void joinpath(CString &fullPath, const CString &drive, const CString &path, const CString &file, const CString &ext);
+	CString GetFileName(const CString &selectString, bool bResult, bool bFullPath) const;
+	void SetResultFileName(const CString &selectString, bool bResult, const CString &file);
+	CString GetAuthor(const CString &selectString, bool bResult) const;
+	CString GetOriginalTitle(const CString &selectString, bool bResult) const;
+	const CList<CFileName> &GetList() const { return m_fileList; };
 
 	//モード取得
 	bool isDeleteHeadParenthesesInfo() const { return m_deleteHeadParenthesesInfo_Flg; };

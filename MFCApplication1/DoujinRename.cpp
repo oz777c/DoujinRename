@@ -2,12 +2,61 @@
 #include "DoujinRename.h"
 
 
-//CDoujinFileRename
+//
+// class CThumbnailCtrl //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CDoujinFileRename::CThumbnailCtrl::FixFileName(const CString &newfile)
+{
+	if( !m_enableRenameFlg ) return;
 
+	CString drive, path, file, ext;
+	CDoujinFileRename::splitpath(m_targetfile, drive, path, file, ext);
 
+	CString target;
+	CDoujinFileRename::joinpath(target, drive, path, file, ".*");
+
+	CFileFind finder;
+	BOOL bWorking = finder.FindFile(target);
+	while( bWorking ){
+		bWorking = finder.FindNextFile();
+		if( finder.IsDirectory() == TRUE ) continue;
+		if( finder.IsDots() == TRUE ) continue;
+
+		const CString sourceFile = finder.GetFilePath();
+		CDoujinFileRename::splitpath(sourceFile, drive, path, file, ext);
+		CDoujinFileRename::joinpath(target, drive, path, newfile, ext);
+
+		MoveFile(sourceFile, target);
+	}
+	finder.Close();
+};
+
+void CDoujinFileRename::CThumbnailCtrl::DeleteFile()
+{
+	if( !m_enableRenameFlg ) return;
+
+	CString drive, path, file, ext;
+	CDoujinFileRename::splitpath(m_targetfile, drive, path, file, ext);
+
+	CString target;
+	CDoujinFileRename::joinpath(target, drive, path, file, ".*");
+
+	CFileFind finder;
+	BOOL bWorking = finder.FindFile(target);
+	while( bWorking ){
+		bWorking = finder.FindNextFile();
+		if( finder.IsDirectory() == TRUE ) continue;
+		if( finder.IsDots() == TRUE ) continue;
+
+		::DeleteFile(finder.GetFilePath());
+	}
+	finder.Close();
+};
+
+//
+// class CFileName //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //static関連
 //ファイル名にあるサークル名/作者の開始/終了番号を取得
-bool CDoujinFileRename::GetAuthorStartEndNum(const CString &file, int &start, int &end)
+bool CDoujinFileRename::CFileName::GetAuthorStartEndNum(const CString &file, int &start, int &end)
 {
 	//start : 最初に見つかった'['
 	//end : '['が見つかった後の']'
@@ -35,29 +84,29 @@ bool CDoujinFileRename::GetAuthorStartEndNum(const CString &file, int &start, in
 }
 
 //ファイル名にあるサークル名/作者の開始番号を取得
-int CDoujinFileRename::GetAuthorStartNum(const CString &file)
+int CDoujinFileRename::CFileName::GetAuthorStartNum(const CString &file)
 {
 	int start = -1, end = -1;
-	CDoujinFileRename::GetAuthorStartEndNum(file, start, end);
+	CDoujinFileRename::CFileName::GetAuthorStartEndNum(file, start, end);
 	return start;
 }
 
 //ファイル名にあるサークル名/作者の終了番号を取得
-int CDoujinFileRename::GetAuthorEndNum(const CString &file)
+int CDoujinFileRename::CFileName::GetAuthorEndNum(const CString &file)
 {
 	int start = -1, end = -1;
-	CDoujinFileRename::GetAuthorStartEndNum(file, start, end);
+	CDoujinFileRename::CFileName::GetAuthorStartEndNum(file, start, end);
 	return end;
 }
 
 //ファイル名にあるサークル名/作者を取得
-CString CDoujinFileRename::GetAuthor(const CString &file)
+CString CDoujinFileRename::CFileName::GetAuthor(const CString &file)
 {
 	CString result = file;
 	do{
 
 		int start = -1, end = -1;
-		if( !CDoujinFileRename::GetAuthorStartEndNum(file, start, end) ){
+		if( !CDoujinFileRename::CFileName::GetAuthorStartEndNum(file, start, end) ){
 			result.Empty();
 			break;
 		}
@@ -70,13 +119,13 @@ CString CDoujinFileRename::GetAuthor(const CString &file)
 }
 
 //ファイル名にある元ネタタイトルを取得
-CString CDoujinFileRename::GetOriginalTitle(const CString &file)
+CString CDoujinFileRename::CFileName::GetOriginalTitle(const CString &file)
 {
 	CString result = file;
 	do{
 
 		int start = -1, end = -1;
-		if( !CDoujinFileRename::GetOriginalTitleStartEndNum(file, start, end) ){
+		if( !CDoujinFileRename::CFileName::GetOriginalTitleStartEndNum(file, start, end) ){
 			result.Empty();
 			break;
 		}
@@ -88,10 +137,8 @@ CString CDoujinFileRename::GetOriginalTitle(const CString &file)
 	return result;
 }
 
-
-//static関連
 //ファイル名にある元ネタタイトルの開始/終了番号を取得
-bool CDoujinFileRename::GetOriginalTitleStartEndNum(const CString &file, int &start, int &end)
+bool CDoujinFileRename::CFileName::GetOriginalTitleStartEndNum(const CString &file, int &start, int &end)
 {
 	//文字列末尾から検索して
 	//start : 最初に見つかった']'
@@ -120,10 +167,10 @@ bool CDoujinFileRename::GetOriginalTitleStartEndNum(const CString &file, int &st
 }
 
 //	先頭の()に囲まれた項目を削除する
-void CDoujinFileRename::DeleteHeadParenthesesInfo(CString &file)
+void CDoujinFileRename::CFileName::DeleteHeadParenthesesInfo(CString &file)
 {
 	file.TrimLeft();
-	while( CDoujinFileRename::GetAuthorStartNum(file) > 1 ){
+	while( CDoujinFileRename::CFileName::GetAuthorStartNum(file) > 1 ){
 		const int start = file.Find('(');
 		if( start == -1 ) break;
 		const int end = file.Find(')', start);
@@ -135,7 +182,7 @@ void CDoujinFileRename::DeleteHeadParenthesesInfo(CString &file)
 }
 
 //	末尾の(DL版)を削除する
-void CDoujinFileRename::DeleteTailParenthesesInfo_DLEDITION(CString &file)
+void CDoujinFileRename::CFileName::DeleteTailParenthesesInfo_DLEDITION(CString &file)
 {
 	//DL版
 	const CString dl_edition[] = {
@@ -143,12 +190,12 @@ void CDoujinFileRename::DeleteTailParenthesesInfo_DLEDITION(CString &file)
 		, "[DL版]"
 		, ""
 	};
-	CDoujinFileRename::DeleteTailParenthesesInfo(file, dl_edition);
+	CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, dl_edition);
 }
 
 
 //	末尾の(無修正)、(無修正版)を[無修正]に変更する
-void CDoujinFileRename::FixTailParenthesesInfo_UNCENSORED(CString &file)
+void CDoujinFileRename::CFileName::FixTailParenthesesInfo_UNCENSORED(CString &file)
 {
 	//無修正
 	const CString unsensord[] = {
@@ -157,12 +204,12 @@ void CDoujinFileRename::FixTailParenthesesInfo_UNCENSORED(CString &file)
 		, ""
 	};
 	const CString new_unsensord = "[無修正]";
-	CDoujinFileRename::FixTailParenthesesInfo(file, unsensord, new_unsensord);
+	CDoujinFileRename::CFileName::FixTailParenthesesInfo(file, unsensord, new_unsensord);
 }
 
 //	末尾の()内で囲われた原作タイトルを[]囲いに変更する
 //	(よろず)は削除、(オリジナル)はフラグ参照
-void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool bOriginalDelete)
+void CDoujinFileRename::CFileName::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool bOriginalDelete)
 {
 	//オリジナル
 	const CString title_original[] = {
@@ -173,11 +220,11 @@ void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool
 		, ""
 	};
 	if( bOriginalDelete ){
-		CDoujinFileRename::DeleteTailParenthesesInfo(file, title_original);
+		CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, title_original);
 	}
 	else {
 		const CString new_title_original = "[オリジナル]";
-		CDoujinFileRename::FixTailParenthesesInfo(file, title_original, new_title_original);
+		CDoujinFileRename::CFileName::FixTailParenthesesInfo(file, title_original, new_title_original);
 	}
 
 
@@ -186,9 +233,9 @@ void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool
 		"(よろず)"
 		, ""
 	};
-	CDoujinFileRename::DeleteTailParenthesesInfo(file, title_yorozu);
+	CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, title_yorozu);
 
-	const int start = CDoujinFileRename::GetAuthorEndNum(file);
+	const int start = CDoujinFileRename::CFileName::GetAuthorEndNum(file);
 	if( start != -1 ) {
 		while( file.Find('(', start) != -1 ){
 			const int search_s = file.Find('(', start);
@@ -205,10 +252,10 @@ void CDoujinFileRename::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool
 }
 
 //ファイル名からtblで指定された文字列をreplaceに置換
-void CDoujinFileRename::FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace)
+void CDoujinFileRename::CFileName::FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace)
 {
 	for( int lpcnt = 0; tbl[lpcnt].IsEmpty() == FALSE; lpcnt++ ){
-		const int start = CDoujinFileRename::GetAuthorEndNum(file) + 1;
+		const int start = CDoujinFileRename::CFileName::GetAuthorEndNum(file) + 1;
 		const int search = file.Find(tbl[lpcnt], start);
 		if( search == -1 ) continue;
 
@@ -218,10 +265,10 @@ void CDoujinFileRename::FixTailParenthesesInfo(CString &file, const CString tbl[
 }
 
 //ファイル名からtblで指定された文字列を削除
-void CDoujinFileRename::DeleteTailParenthesesInfo(CString &file, const CString tbl[])
+void CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(CString &file, const CString tbl[])
 {
 	for( int lpcnt = 0; tbl[lpcnt].IsEmpty() == FALSE; lpcnt++ ){
-		const int start = CDoujinFileRename::GetAuthorEndNum(file) + 1;
+		const int start = CDoujinFileRename::CFileName::GetAuthorEndNum(file) + 1;
 		const int search = file.Find(tbl[lpcnt], start);
 		if( search == -1 ) continue;
 		file.Delete(search, tbl[lpcnt].GetLength());
@@ -229,25 +276,63 @@ void CDoujinFileRename::DeleteTailParenthesesInfo(CString &file, const CString t
 }
 
 //ファイル名から末尾のスペース文字を消す
-void CDoujinFileRename::DeleteTailSpace(CString &result)
+void CDoujinFileRename::CFileName::DeleteTailSpace(CString &result)
 {
 	result.Trim();
 }
 
 
 //ファイル名を変更する
-CString CDoujinFileRename::Rename(const CString &file) const
+CString CDoujinFileRename::CFileName::GetRename(const CDoujinFileRename &info) const
 {
-	CString result = file;
+	CString result = m_targetFileName;
 
-	if( m_deleteHeadParenthesesInfo_Flg ) DeleteHeadParenthesesInfo(result);
-	if( m_deleteTailParenthesesInfo_DLEDITION_Flg ) DeleteTailParenthesesInfo_DLEDITION(result);
-	if( m_deleteTailSpace_Flg ) DeleteTailSpace(result);
-	if( m_fixTailParenthesesInfo_UNCENSORED_Flg ) FixTailParenthesesInfo_UNCENSORED(result);
-	if( m_fixTailParenthesesInfo_ORIGINALTITLE_Flg ) FixTailParenthesesInfo_ORIGINALTITLE(result, m_fixTailParenthesesInfo_ORIGINAL_MODE == 0);
+	if( info.isDeleteHeadParenthesesInfo() ) DeleteHeadParenthesesInfo(result);
+	if( info.isDeleteTailParenthesesInfo_DLEDITION() ) DeleteTailParenthesesInfo_DLEDITION(result);
+	if( info.isDeleteTailSpace() ) DeleteTailSpace(result);
+	if( info.isFixTailParenthesesInfo_UNCENSORED() ) FixTailParenthesesInfo_UNCENSORED(result);
+	if( info.isFixTailParenthesesInfo_ORIGINALTITLE() ) FixTailParenthesesInfo_ORIGINALTITLE(result, info.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 0);
 
 	return result;
 }
+
+//外部インターフェース等で選択された文字列が、該当データの対象かどうか
+bool CDoujinFileRename::CFileName::isSelectFile(const CString &selectString, bool bResult) const
+{
+	const CString &string = bResult ? m_resultFileName : m_targetFileName;
+	return string == selectString;
+}
+
+
+//
+// class CDoujinFileRename //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//コンストラクタ
+CDoujinFileRename::CDoujinFileRename()
+{
+	Initialize();
+}
+
+//デストラクタ
+CDoujinFileRename::~CDoujinFileRename()
+{
+	Initialize();
+}
+
+//初期化
+void CDoujinFileRename::Initialize()
+{
+	m_fileList.RemoveAll();
+
+	m_deleteHeadParenthesesInfo_Flg = true;
+	m_deleteTailParenthesesInfo_DLEDITION_Flg = true;
+	m_fixTailParenthesesInfo_ORIGINALTITLE_Flg = true;
+	m_fixTailParenthesesInfo_UNCENSORED_Flg = true;
+	m_deleteTailSpace_Flg = true;
+	m_addTailParentheseInfo_ORIGINAL_Flg = true;
+
+	m_fixTailParenthesesInfo_ORIGINAL_MODE = 1;
+}
+
 
 //フルパスからドライブ、パス、ファイル名、拡張子を取得する
 void CDoujinFileRename::splitpath(const CString &fullpath, CString &drive, CString &path, CString &file, CString &ext)
@@ -273,144 +358,66 @@ void CDoujinFileRename::joinpath(CString &fullPath, const CString &drive, const 
 	CString renameFileStr;
 	fullPath = drive + path + file + ext;
 }
-
-//public関連
-//コンストラクタ
-CDoujinFileRename::CDoujinFileRename()
-{
-	Initialize();
-}
-
-//デストラクタ
-CDoujinFileRename::~CDoujinFileRename()
-{
-	Initialize();
-}
-
-//初期化
-void CDoujinFileRename::Initialize()
-{
-	m_targetFileList.RemoveAll();
-	m_resultFileNameList.RemoveAll();
-
-	m_deleteHeadParenthesesInfo_Flg = true;
-	m_deleteTailParenthesesInfo_DLEDITION_Flg = true;
-	m_fixTailParenthesesInfo_ORIGINALTITLE_Flg = true;
-	m_fixTailParenthesesInfo_UNCENSORED_Flg = true;
-	m_deleteTailSpace_Flg = true;
-	m_addTailParentheseInfo_ORIGINAL_Flg = true;
-
-	m_fixTailParenthesesInfo_ORIGINAL_MODE = 1;
-}
-
 //該当ファイルをリストに追加
 void CDoujinFileRename::AddFileName(const CString &targetFile)
 {
-	m_targetFileList.AddTail(targetFile);
-}
-
-//対象ファイルリストを取得する
-//	bfullpath	:	フルパス or ファイル名称のみ
-void CDoujinFileRename::GetFileStringList(CStringList &resultList, bool bfullpath) const
-{
-	resultList.RemoveAll();
-	POSITION pos = m_targetFileList.GetHeadPosition();
-	while( pos ){
-		const CString str = m_targetFileList.GetNext(pos);
-
-		if( bfullpath ) resultList.AddTail(str);
-		else {
-			CString drive, path, file, ext;
-			CDoujinFileRename::splitpath(str, drive, path, file, ext);
-			resultList.AddTail(file);
-		}
-	}
-}
-
-//変更後のファイルリストを取得する
-//	bfullpath	:	フルパス or ファイル名称のみ
-void CDoujinFileRename::GetRenameFileStringList(CStringList &resultList, bool bfullpath) const
-{
-	resultList.RemoveAll();
-	POSITION pos = m_resultFileNameList.GetHeadPosition();
-	while( pos ){
-		const CString str = m_resultFileNameList.GetNext(pos);
-
-		if( bfullpath ) resultList.AddTail(str);
-		else {
-			CString drive, path, file, ext;
-			CDoujinFileRename::splitpath(str, drive, path, file, ext);
-			resultList.AddTail(file);
-		}
-	}
+	CString file, ext;
+	splitpath(targetFile, m_drive, m_path, file, ext);
+	m_fileList.AddTail(CFileName(file, ext));
 }
 
 //ファイル名
 //	n	:	リストの番号
 //	bResult	:	変換後	or 対象ファイル
-CString CDoujinFileRename::GetFileName(int n, bool bResult, bool bFullPath) const
+CString CDoujinFileRename::GetFileName(const CString &selectString, bool bResult, bool bFullPath) const
 {
-	CString result = "";
-	const CStringList &list = bResult ? m_targetFileList : m_resultFileNameList;
+	CString result;
 
 	do {
-		const int count = list.GetCount();
-		if( n < 0 || (count - 1) < n ) break;
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			const CFileName &fileName = m_fileList.GetNext(pos);
+			if( !fileName.isSelectFile(selectString, bResult) ) continue;
 
-		POSITION pos = list.FindIndex(n);
-		if( pos == NULL ) break;
-
-		const CString full = list.GetAt(pos);
-		result = full;
-		if( !bFullPath ){
-			CString drive, path, file, ext;
-			splitpath(full, drive, path, result, ext);
+			result = fileName.GetFileName(bResult);
+			if( bFullPath ){
+				const CString fileNameStr = result;
+				CDoujinFileRename::joinpath(result, m_drive, m_path, fileNameStr, fileName.GetExt());
+			}
+			break;
 		}
 	} while( false );
 
 	return result;
 }
 
-//	n	:	リストの番号
-//	bResult	:	変換後	or 対象ファイル
-void CDoujinFileRename::SetFileName(int n, const CString &file)
+void CDoujinFileRename::SetResultFileName(const CString &selectString, bool bResult, const CString &file)
 {
-	CStringList &list = m_resultFileNameList;
 	do {
-		const int count = list.GetCount();
-		if( n < 0 || (count - 1) < n ) break;
-
-		const POSITION pos = list.FindIndex(n);
-		if( pos == NULL ) break;
-		const CString fullPath = list.GetAt(pos);
-
-		CString drive, path, dumy, ext;
-		splitpath(fullPath, drive, path, dumy, ext);
-		CString newFullPath;
-		joinpath(newFullPath, drive, path, file, ext);
-
-		if( newFullPath.IsEmpty() == TRUE ) break;
-
-		list.SetAt(pos, newFullPath);
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			CFileName &fileName = m_fileList.GetNext(pos);
+			if( !fileName.isSelectFile(selectString, bResult) ) continue;
+			fileName.SetResultFileName(file);
+			break;
+		}
 	} while( false );
 }
 
 //ファイルからサークル名/作者を取得する
 //	n	:	リストの番号
 //	bResult	:	変換後	or 対象ファイル
-CString CDoujinFileRename::GetAuthor(int n, bool bResult) const
+CString CDoujinFileRename::GetAuthor(const CString &selectString, bool bResult) const
 {
-	CString result = "";
-	const CStringList &list = bResult ? m_targetFileList : m_resultFileNameList;
-
+	CString result;
 	do {
-		const int count = list.GetCount();
-		if( n < 0 || (count - 1) < n ) break;
-
-		POSITION pos = list.FindIndex(n);
-		if( pos == NULL ) break;
-
-		result = CDoujinFileRename::GetAuthor(list.GetAt(pos));
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			const CFileName &fileName = m_fileList.GetNext(pos);
+			if( !fileName.isSelectFile(selectString, bResult) ) continue;
+			result = fileName.GetAuthor();
+			break;
+		}
 	} while( false );
 
 	return result;
@@ -419,19 +426,17 @@ CString CDoujinFileRename::GetAuthor(int n, bool bResult) const
 //ファイルから元ネタタイトルを取得する
 //	n	:	リストの番号
 //	bResult	:	変換後	or 対象ファイル
-CString CDoujinFileRename::GetOriginalTitle(int n, bool bResult) const
+CString CDoujinFileRename::GetOriginalTitle(const CString &selectString, bool bResult) const
 {
-	CString result = "";
-	const CStringList &list = bResult ? m_targetFileList : m_resultFileNameList;
-
+	CString result;
 	do {
-		const int count = list.GetCount();
-		if( n < 0 || (count - 1) < n ) break;
-
-		POSITION pos = list.FindIndex(n);
-		if( pos == NULL ) break;
-
-		result = CDoujinFileRename::GetOriginalTitle(list.GetAt(pos));
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			const CFileName &fileName = m_fileList.GetNext(pos);
+			if( !fileName.isSelectFile(selectString, bResult) ) continue;
+			result = fileName.GetOriginalTitle();
+			break;
+		}
 	} while( false );
 
 	return result;
@@ -440,48 +445,39 @@ CString CDoujinFileRename::GetOriginalTitle(int n, bool bResult) const
 //	対象ファイルを変換し、結果をm_resultFileNameListに格納する
 void CDoujinFileRename::SetResultName()
 {
-	m_resultFileNameList.RemoveAll();
-
 	CStringList checkStringList;
 
-	POSITION pos = m_targetFileList.GetHeadPosition();
+	POSITION pos = m_fileList.GetHeadPosition();
 	while( pos ){
-		const CString str = m_targetFileList.GetNext(pos);
+		CFileName &fileName = m_fileList.GetNext(pos);
+		if( !fileName.isRename() ) continue;
+		CString rename = fileName.GetRename(*this);
 
-		CString drive, path, file, ext;
-		CDoujinFileRename::splitpath(str, drive, path, file, ext);
+		if( fileName.GetFileName(false) != rename ){
+			int count = 0;
 
-		CString rename = Rename(file);
-
-		int count = 0;
-		POSITION search = checkStringList.GetHeadPosition();
-		while( search ){
-			if( checkStringList.GetNext(search).Find(rename) == -1 ) continue;
-			count++;
+			CString tempRename = rename;
+			while(count < 500 ){
+				if( checkStringList.Find(tempRename) == NULL ) break;
+				count++;
+				tempRename.Format("%s(%d)", rename, count);
+			}
+			rename = tempRename;
 		}
-		if( count != 0 ) rename.AppendFormat("(%d)", count);
+
 		checkStringList.AddTail(rename);
-
-		CString result;
-		joinpath(result, drive, path, rename, ext);
-
-		m_resultFileNameList.AddTail(result);
+		fileName.SetResultFileName(rename);
 	}
 }
 
 void CDoujinFileRename::CopyToResultName()
 {
-	m_resultFileNameList.RemoveAll();
-	POSITION pos = m_targetFileList.GetHeadPosition();
-	while( pos ) m_resultFileNameList.AddTail(m_targetFileList.GetNext(pos));
+	POSITION pos = m_fileList.GetHeadPosition();
+	while( pos ) m_fileList.GetNext(pos).ResetResultFileName();
 }
 
 void CDoujinFileRename::RemoveFile(const int sel)
 {
-	POSITION pos1 = m_targetFileList.FindIndex(sel);
-	POSITION pos2 = m_resultFileNameList.FindIndex(sel);
-	if( pos1 != NULL && pos2 != NULL ){
-		m_targetFileList.RemoveAt(pos1);
-		m_resultFileNameList.RemoveAt(pos2);
-	}
+	POSITION pos = m_fileList.FindIndex(sel);
+	if( pos != NULL ) m_fileList.RemoveAt(pos);
 }

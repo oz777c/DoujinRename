@@ -8,6 +8,7 @@
 #include "MFCApplication1Dlg.h"
 #include "afxdialogex.h"
 #include "Dialog1.h"
+#include "Dialog2.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,9 +21,9 @@
 
 CMFCApplication1Dlg::CMFCApplication1Dlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CMFCApplication1Dlg::IDD, pParent)
-	, m_bWithThumbnai1(FALSE)
-	, m_bWithThumbnai2(FALSE)
-	, m_bWithThumbnai3(FALSE)
+	, m_bWithThumbnai1(TRUE)
+	, m_bWithThumbnai2(TRUE)
+	, m_bWithThumbnai3(TRUE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_withThumbnailFolder1 = "C:\\Apache24\\htdocs\\www\\Secret_ex\\cache\\pdf";
@@ -50,12 +51,13 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CMFCApplication1Dlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_BUTTON2, &CMFCApplication1Dlg::OnBnClickedButton2)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CMFCApplication1Dlg::OnLbnSelchangeList1)
-	ON_LBN_SELCHANGE(IDC_LIST2, &CMFCApplication1Dlg::OnLbnSelchangeList2)
 	ON_BN_CLICKED(IDC_BUTTON4, &CMFCApplication1Dlg::OnBnClickedButton4)
 	ON_BN_CLICKED(IDC_BUTTON5, &CMFCApplication1Dlg::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON7, &CMFCApplication1Dlg::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON6, &CMFCApplication1Dlg::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON8, &CMFCApplication1Dlg::OnBnClickedButton8)
+	ON_BN_CLICKED(IDC_CHECK10, &CMFCApplication1Dlg::OnBnClickedCheck10)
+	ON_BN_CLICKED(IDC_BUTTON10, &CMFCApplication1Dlg::OnBnClickedButton10)
 END_MESSAGE_MAP()
 
 
@@ -79,6 +81,8 @@ BOOL CMFCApplication1Dlg::OnInitDialog()
 
 	((CButton*)GetDlgItem(IDC_RADIO1))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 0 ? BST_CHECKED : BST_UNCHECKED);
 	((CButton*)GetDlgItem(IDC_RADIO2))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 1 ? BST_CHECKED : BST_UNCHECKED);
+
+	((CButton*)GetDlgItem(IDC_CHECK9))->SetCheck(BST_CHECKED);
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -156,7 +160,6 @@ void CMFCApplication1Dlg::OnBnClickedButton1()
 			bWorking = finder.FindNextFile();
 			if( finder.IsDirectory() == TRUE ) continue;
 			if( finder.IsDots() == TRUE ) continue;
-			if( finder.GetFileName().Find(m_filterStr) == CB_ERR && m_filterStr.IsEmpty() == FALSE ) continue;
 
 			m_fileList.AddFileName(finder.GetFilePath());
 		}
@@ -164,14 +167,8 @@ void CMFCApplication1Dlg::OnBnClickedButton1()
 
 		//m_fileList.SetResultName();
 		m_fileList.CopyToResultName();
+		ResetList();
 
-		{//入力
-			CStringList list;
-			m_fileList.GetRenameFileStringList(list, false);
-
-			POSITION pos = list.GetHeadPosition();
-			while( pos ) pBox->AddString(list.GetNext(pos));
-		}
 	} while( false );
 }//2017/04/14 okamoto
 
@@ -187,13 +184,13 @@ void CMFCApplication1Dlg::OnBnClickedButton2()
 	{//変換
 		m_fileList.SetResultName();
 
-		CStringList list;
-		m_fileList.GetRenameFileStringList(list, false);
-
 		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
 		pBox->ResetContent();
-		POSITION pos = list.GetHeadPosition();
-		while( pos ) pBox->AddString(list.GetNext(pos));
+		POSITION pos = m_fileList.GetList().GetHeadPosition();
+		while( pos ){
+			const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
+			pBox->AddString(fileInfo.GetFileName(true));
+		}
 	}
 }
 
@@ -207,55 +204,80 @@ void CMFCApplication1Dlg::OnLbnSelchangeList1()
 {
 	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
 	const int sel = pBox->GetCurSel();
+	if( sel < 0 || pBox->GetCount() <= sel ) return;
+	CString selectStr;
+	pBox->GetText(sel, selectStr);
+	if( selectStr.IsEmpty() == TRUE ) return;
 
-	const CString autor = m_fileList.GetAuthor(sel, false);
+	const CString autor = m_fileList.GetAuthor(selectStr, false);
 	((CEdit*)GetDlgItem(IDC_EDIT2))->SetWindowText(autor);
 
-	const CString title = m_fileList.GetOriginalTitle(sel, false);
+	const CString title = m_fileList.GetOriginalTitle(selectStr, false);
 	((CEdit*)GetDlgItem(IDC_EDIT3))->SetWindowText(autor == title ? "" : title);
-}
-
-void CMFCApplication1Dlg::OnLbnSelchangeList2()
-{
-	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST2));
-	const int sel = pBox->GetCurSel();
-
-	const CString autor = m_fileList.GetAuthor(sel, false);
-	((CStatic*)GetDlgItem(IDC_STATIC_AUTOR2))->SetWindowText(autor);
 }
 
 void CMFCApplication1Dlg::OnBnClickedButton4()
 {
 	UpdateData();
-	CStringList fileNameList, renameFileList;
-	m_fileList.GetFileStringList(fileNameList, true);
-	m_fileList.GetRenameFileStringList(renameFileList, true);
 
-	if( fileNameList.GetCount() != renameFileList.GetCount() ) {
-		AfxMessageBox("指定したファイル数と変換後のファイル数がちがうんで処理やめます");
-		return;
+	CDialog2 dlg;
+	dlg.SetWithThumbnail1(m_bWithThumbnai1);
+	dlg.SetWithThumbnail2(m_bWithThumbnai2);
+	dlg.SetWithThumbnail3(m_bWithThumbnai3);
+
+	CStringList list;
+	POSITION pos = m_fileList.GetList().GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
+		if( !fileInfo.isRename() ) continue;
+
+		const CString sourceFileName = fileInfo.GetFileName(false);
+		const CString renameFileName = fileInfo.GetFileName(true);
+
+		list.AddTail(sourceFileName + " ---> " + renameFileName);
 	}
 
-#define NUMBER 3
-	for( int lpcnt = 0; lpcnt < fileNameList.GetCount(); lpcnt++ ){
-		const CString sourceFile = fileNameList.GetAt(fileNameList.FindIndex(lpcnt));
-		const CString renameFile = renameFileList.GetAt(renameFileList.FindIndex(lpcnt));
+	dlg.SetRenameList(list);
+	if( dlg.DoModal() != IDOK ) return;
 
-		MoveFile(sourceFile, renameFile);
+	bool noMsgFlg = ((CButton*)GetDlgItem(IDC_CHECK9))->GetCheck() == BST_UNCHECKED;
+
+#define NUMBER 3
+	pos = m_fileList.GetList().GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
+		if( !fileInfo.isRename() ) continue;
+
+		const CString source = fileInfo.GetFileName(false);
+		const CString rename = fileInfo.GetFileName(true);
+
+		if( !noMsgFlg ){
+			CString message;
+			message.Format("ファイル名前を変更しますか？\n%s -> %s", source, rename);
+			UINT result = AfxMessageBox(message, MB_YESNOCANCEL);
+			if( result == IDNO ) continue;
+			if( result == IDCANCEL ) break;
+		}
+
+		CString sourceFile, renameFile;
+		CDoujinFileRename::joinpath(sourceFile, m_fileList.GetDrive(), m_fileList.GetPath(), source, fileInfo.GetExt());
+		CDoujinFileRename::joinpath(renameFile, m_fileList.GetDrive(), m_fileList.GetPath(), rename, fileInfo.GetExt());
+		if( MoveFile(sourceFile, renameFile) == FALSE && !noMsgFlg ){
+			CString message;
+			message.Format("ファイル名の変更に失敗しました。\n%s -> %s", source, rename);
+			AfxMessageBox(message);
+			continue;
+		}
 
 		//サムネイル
-		CString drive, path, fileName, ext;
-		CDoujinFileRename::splitpath(sourceFile, drive, path, fileName, ext);
 		CDoujinFileRename::CThumbnailCtrl temp[NUMBER] = {
-			CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai1 == TRUE, m_withThumbnailFolder1 + "\\" + fileName + ".*")
-			, CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai2 == TRUE, m_withThumbnailFolder2 + "\\" + fileName + ".*")
-			, CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai3 == TRUE, m_withThumbnailFolder3 + "\\" + fileName + ".*")
+			CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai1 == TRUE, m_withThumbnailFolder1 + "\\" + source + ".*")
+			, CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai2 == TRUE, m_withThumbnailFolder2 + "\\" + source + ".*")
+			, CDoujinFileRename::CThumbnailCtrl(m_bWithThumbnai3 == TRUE, m_withThumbnailFolder3 + "\\" + source + ".*")
 		};
 
-		CDoujinFileRename::splitpath(renameFile, drive, path, fileName, ext);
-
 		for( int lpcnt = 0; lpcnt < NUMBER; lpcnt++ ){
-			temp[lpcnt].FixFileName(fileName);
+			temp[lpcnt].FixFileName(rename);
 		}
 	}
 }
@@ -265,15 +287,9 @@ void CMFCApplication1Dlg::OnBnClickedButton5()
 {
 	{
 		m_fileList.CopyToResultName();
-		CStringList list;
-		m_fileList.GetRenameFileStringList(list, false);
 
-		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
-		pBox->ResetContent();
-		POSITION pos = list.GetHeadPosition();
-		while( pos ) pBox->AddString(list.GetNext(pos));
+		ResetList();
 	}
-
 }
 
 //フィルタークリア
@@ -289,14 +305,18 @@ void CMFCApplication1Dlg::OnBnClickedButton6()
 	do {
 		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
 		const int sel = pBox->GetCurSel();
-		if( sel == CB_ERR ) break;
+		if( sel < 0 || pBox->GetCount() <= sel ) break;
+		CString selectStr;
+		pBox->GetText(sel, selectStr);
+		if( selectStr.IsEmpty() == TRUE ) break;
+
 
 		CDialog1 dlg;
-		dlg.SetNewFileName(m_fileList.GetFileName(sel, false, false));
+		dlg.SetNewFileName(m_fileList.GetFileName(selectStr, true, false));
 
 		if( dlg.DoModal() != IDOK ) break;
 
-		m_fileList.SetFileName(sel, dlg.GetNewFileName());
+		m_fileList.SetResultFileName(selectStr, true, dlg.GetNewFileName());
 		pBox->DeleteString(sel);
 		pBox->InsertString(sel, dlg.GetNewFileName());
 	} while( false );
@@ -308,12 +328,15 @@ void CMFCApplication1Dlg::OnBnClickedButton8()
 	do {
 		CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
 		const int sel = pBox->GetCurSel();
-		if( sel == CB_ERR ) break;
+		if( sel < 0 || pBox->GetCount() <= sel ) break;
+		CString selectStr;
+		pBox->GetText(sel, selectStr);
+		if( selectStr.IsEmpty() == TRUE ) break;
 
-		const CString fullFileName = m_fileList.GetFileName(sel, true, true);
+		const CString fullFileName = m_fileList.GetFileName(selectStr, true, true);
 		::DeleteFile(fullFileName);
 
-		const CString fileName = m_fileList.GetFileName(sel, true, false);
+		const CString fileName = m_fileList.GetFileName(selectStr, true, false);
 
 		CString message;
 		message.Format("「%s」を削除します", fileName);
@@ -336,9 +359,42 @@ void CMFCApplication1Dlg::OnBnClickedButton8()
 
 		m_fileList.RemoveFile(sel);
 		pBox->ResetContent();
-		CStringList list;
-		m_fileList.GetRenameFileStringList(list, false);
-		POSITION pos = list.GetHeadPosition();
-		while( pos ) pBox->AddString(list.GetNext(pos));
+		POSITION pos = m_fileList.GetList().GetHeadPosition();
+		while( pos ){
+			const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
+			pBox->AddString(fileInfo.GetFileName(true));
+		}
 	} while( false );
+}
+
+//リスト更新
+void CMFCApplication1Dlg::ResetList()
+{
+	UpdateData();
+	const bool bEnableFilter = ((CButton*)GetDlgItem(IDC_CHECK10))->GetCheck() == BST_CHECKED;
+
+	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+	pBox->ResetContent();
+
+	POSITION pos = m_fileList.GetList().GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
+		const CString fileNameStr = fileName.GetFileName(true);
+		if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+
+		pBox->AddString(fileNameStr);
+	}
+}
+
+
+//フィルターON
+void CMFCApplication1Dlg::OnBnClickedCheck10()
+{
+	ResetList();
+}
+
+//リストの更新(手動)
+void CMFCApplication1Dlg::OnBnClickedButton10()
+{
+	ResetList();
 }

@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dialog1.h" />
+    <ClInclude Include="Dialog2.h" />
     <ClInclude Include="DoujinRename.h" />
     <ClInclude Include="MFCApplication1.h" />
     <ClInclude Include="MFCApplication1Dlg.h" />
@@ -111,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dialog1.cpp" />
+    <ClCompile Include="Dialog2.cpp" />
     <ClCompile Include="DoujinRename.cpp" />
     <ClCompile Include="MFCApplication1.cpp" />
     <ClCompile Include="MFCApplication1Dlg.cpp" />
