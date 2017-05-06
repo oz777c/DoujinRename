@@ -245,7 +245,7 @@ void CMFCApplication1Dlg::OnBnClickedButton4()
 #define NUMBER 3
 	pos = m_fileList.GetList().GetHeadPosition();
 	while( pos ){
-		const CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
+		CDoujinFileRename::CFileName &fileInfo = m_fileList.GetList().GetNext(pos);
 		if( !fileInfo.isRename() ) continue;
 
 		const CString source = fileInfo.GetFileName(false);
@@ -279,6 +279,7 @@ void CMFCApplication1Dlg::OnBnClickedButton4()
 		for( int lpcnt = 0; lpcnt < NUMBER; lpcnt++ ){
 			temp[lpcnt].FixFileName(rename);
 		}
+		fileInfo.Rename();
 	}
 }
 

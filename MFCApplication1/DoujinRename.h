@@ -60,7 +60,7 @@ public:
 
 		void SetRenameTarget(bool sw){m_renameTargetFlg = sw;};
 		void ResetResultFileName() {m_resultFileName = m_targetFileName;};
-		void Rename(const CDoujinFileRename &info) { m_resultFileName = GetRename(info); };
+		void Rename() { m_targetFileName = m_resultFileName; };
 		void SetResultFileName(const CString &filename){ m_resultFileName = filename; };
 
 		CFileName & operator= (const CFileName&a){
@@ -110,6 +110,7 @@ public:
 	CString GetAuthor(const CString &selectString, bool bResult) const;
 	CString GetOriginalTitle(const CString &selectString, bool bResult) const;
 	const CList<CFileName> &GetList() const { return m_fileList; };
+	CList<CFileName> &GetList() { return m_fileList; };
 
 	//ÉÇÅ[ÉhéÊìæ
 	bool isDeleteHeadParenthesesInfo() const { return m_deleteHeadParenthesesInfo_Flg; };
