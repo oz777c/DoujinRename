@@ -490,3 +490,84 @@ void CDoujinFileRename::RemoveFile(const CString &selectString, bool bResult)
 		}
 	} while( false );
 }
+
+void CDoujinFileRename::GetSimilarAutherList(const CString &auther, CStringList &resultList) const
+{
+	if( auther.IsEmpty() == TRUE ) return;
+
+	const int count = auther.Find("(");
+
+	CString auther1 = auther;
+	CString auther2 = auther;
+	if( count != -1 ){
+		auther1.Delete(count, auther.GetLength() - count);
+		auther2.Delete(0, count - 1);
+	}
+	else auther2.Empty();
+	auther1.MakeLower();
+	auther1.Replace(" ", "");
+	auther2.MakeLower();
+	auther2.Replace(" ", "");
+
+	POSITION pos = m_fileList.GetHeadPosition();
+	while( pos ){
+		bool result = false;
+		const CDoujinFileRename::CFileName &fileName = m_fileList.GetNext(pos);
+		const CString tempAuter = fileName.GetAuthor();
+		if( tempAuter.IsEmpty() == TRUE ) continue;
+
+		if( auther == tempAuter ) continue;
+
+		const int countTemp = tempAuter.Find("(");
+		CString tempAuter1 = tempAuter;
+		CString tempAuter2 = tempAuter;
+		if( countTemp != -1 ){
+			tempAuter1.Delete(countTemp, tempAuter.GetLength() - countTemp);
+			tempAuter2.Delete(0, countTemp - 1);
+		}
+		else tempAuter2.Empty();
+		tempAuter1.MakeLower();
+		tempAuter1.Replace(" ", "");
+		tempAuter2.MakeLower();
+		tempAuter2.Replace(" ", "");
+
+		result = tempAuter1.Find(auther1) != -1;
+		if( !result && auther2.IsEmpty() == FALSE && tempAuter2.IsEmpty() == FALSE ){
+			result = tempAuter2.Find(auther2) != -1;
+		}
+		if( result ) resultList.AddTail(fileName.GetFileName(false));
+	}
+}
+
+
+void CDoujinFileRename::GetSimilarAutherList(CStringList &resultList) const
+{
+	POSITION pos = m_fileList.GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileName = m_fileList.GetNext(pos);
+		const CString auther = fileName.GetAuthor();
+		if( auther.IsEmpty() == TRUE ) continue;
+
+		CStringList list;
+		GetSimilarAutherList(auther, list);
+		if( list.IsEmpty() == FALSE ){
+			list.AddTail(fileName.GetFileName(false));
+
+			POSITION pos2 = list.GetHeadPosition();
+			while( pos2 ){
+				bool result = false;
+				const CString str = list.GetNext(pos2);
+
+				POSITION pos3 = resultList.GetHeadPosition();
+				while( pos3 ){
+					const CString str2 = resultList.GetNext(pos3);
+					if( str == str2 ) result = true;
+					if( result ) break;
+				}
+
+				if( !result ) resultList.AddTail(str);
+			}
+			break;
+		}
+	}
+}

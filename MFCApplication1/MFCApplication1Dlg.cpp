@@ -29,6 +29,7 @@ CMFCApplication1Dlg::CMFCApplication1Dlg(CWnd* pParent /*=NULL*/)
 	m_withThumbnailFolder1 = "C:\\Apache24\\htdocs\\www\\Secret_ex\\cache\\pdf";
 	m_withThumbnailFolder2 = "T:\\cache\\original\\H_doujin";
 	m_withThumbnailFolder3 = "T:\\cache\\resize\\H_doujin";
+	m_filterMode = 0;
 }
 
 void CMFCApplication1Dlg::DoDataExchange(CDataExchange* pDX)
@@ -59,6 +60,8 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON8, &CMFCApplication1Dlg::OnBnClickedButton8)
 	ON_BN_CLICKED(IDC_CHECK10, &CMFCApplication1Dlg::OnBnClickedCheck10)
 	ON_BN_CLICKED(IDC_BUTTON10, &CMFCApplication1Dlg::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_RADIO4, &CMFCApplication1Dlg::OnBnClickedRadio4)
+	ON_BN_CLICKED(IDC_RADIO5, &CMFCApplication1Dlg::OnBnClickedRadio5)
 END_MESSAGE_MAP()
 
 
@@ -84,6 +87,7 @@ BOOL CMFCApplication1Dlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_RADIO2))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 1 ? BST_CHECKED : BST_UNCHECKED);
 
 	((CButton*)GetDlgItem(IDC_CHECK9))->SetCheck(BST_CHECKED);
+	InitFilterModeItem();
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -370,13 +374,32 @@ void CMFCApplication1Dlg::ResetList()
 	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
 	pBox->ResetContent();
 
-	POSITION pos = m_fileList.GetList().GetHeadPosition();
-	while( pos ){
-		const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
-		const CString fileNameStr = fileName.GetFileName(true);
-		if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+	if( bEnableFilter ){
+		if( m_filterMode == 0 ){
+			POSITION pos = m_fileList.GetList().GetHeadPosition();
+			while( pos ){
+				const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
+				const CString fileNameStr = fileName.GetFileName(true);
+				if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE ) continue;
 
-		pBox->AddString(fileNameStr);
+				pBox->AddString(fileNameStr);
+			}
+		}
+		else if( m_filterMode == 1 ){
+			CStringList fileList;
+			m_fileList.GetSimilarAutherList(fileList);
+
+			POSITION pos = fileList.GetHeadPosition();
+			while( pos ) 	pBox->AddString(fileList.GetNext(pos));
+		}
+	}
+	else {
+		POSITION pos = m_fileList.GetList().GetHeadPosition();
+		while( pos ){
+			const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
+			const CString fileNameStr = fileName.GetFileName(true);
+			pBox->AddString(fileNameStr);
+		}
 	}
 }
 
@@ -384,11 +407,41 @@ void CMFCApplication1Dlg::ResetList()
 //フィルターON
 void CMFCApplication1Dlg::OnBnClickedCheck10()
 {
+	InitFilterModeItem();
 	ResetList();
 }
 
 //リストの更新(手動)
 void CMFCApplication1Dlg::OnBnClickedButton10()
 {
+	InitFilterModeItem();
 	ResetList();
+}
+
+void CMFCApplication1Dlg::OnBnClickedRadio4()
+{
+	m_filterMode = 0;
+	InitFilterModeItem();
+	ResetList();
+}
+
+
+void CMFCApplication1Dlg::OnBnClickedRadio5()
+{
+	m_filterMode = 1;
+	InitFilterModeItem();
+	ResetList();
+}
+
+void CMFCApplication1Dlg::InitFilterModeItem()
+{
+	bool filterFlg = ((CButton*)GetDlgItem(IDC_CHECK10))->GetCheck() == BST_CHECKED;
+	((CEdit*)GetDlgItem(IDC_EDIT1))->EnableWindow(filterFlg && m_filterMode == 0);
+	((CButton*)GetDlgItem(IDC_RADIO4))->SetCheck(m_filterMode == 0 ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_RADIO5))->SetCheck(m_filterMode == 1 ? BST_CHECKED : BST_UNCHECKED);
+	((CButton*)GetDlgItem(IDC_RADIO6))->SetCheck(m_filterMode == 2 ? BST_CHECKED : BST_UNCHECKED);
+
+	((CButton*)GetDlgItem(IDC_RADIO4))->EnableWindow(filterFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_RADIO5))->EnableWindow(filterFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_RADIO6))->EnableWindow(filterFlg ? TRUE : FALSE);
 }

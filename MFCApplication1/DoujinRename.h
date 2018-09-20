@@ -111,6 +111,8 @@ public:
 	CString GetOriginalTitle(const CString &selectString, bool bResult) const;
 	const CList<CFileName> &GetList() const { return m_fileList; };
 	CList<CFileName> &GetList() { return m_fileList; };
+	void GetSimilarAutherList(const CString &authoer, CStringList &resultList) const;
+	void GetSimilarAutherList(CStringList &resultList) const;
 
 	//ÉÇÅ[ÉhéÊìæ
 	bool isDeleteHeadParenthesesInfo() const { return m_deleteHeadParenthesesInfo_Flg; };

@@ -10,6 +10,7 @@ class CMFCApplication1Dlg : public CDialogEx
 {
 	CDoujinFileRename m_fileList;
 	CString m_filterStr;
+	BYTE m_filterMode;
 	BOOL m_bWithThumbnai1;
 	BOOL m_bWithThumbnai2;
 	BOOL m_bWithThumbnai3;
@@ -18,6 +19,7 @@ class CMFCApplication1Dlg : public CDialogEx
 	CString m_withThumbnailFolder3;
 
 	void ResetList();
+	void InitFilterModeItem();
 
 // コンストラクション
 public:
@@ -51,4 +53,6 @@ public:
 	afx_msg void OnBnClickedButton8();
 	afx_msg void OnBnClickedCheck10();
 	afx_msg void OnBnClickedButton10();
+	afx_msg void OnBnClickedRadio4();
+	afx_msg void OnBnClickedRadio5();
 };
