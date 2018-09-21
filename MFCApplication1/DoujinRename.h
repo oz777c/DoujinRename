@@ -30,6 +30,7 @@ public:
 		static int GetAuthorStartNum(const CString &file);
 		static int GetAuthorEndNum(const CString &file);
 		static CString GetAuthor(const CString &file);
+		static void GetAuthor(const CString &file, CString &author1, CString & author2, bool spaceTrimFlg);
 		static bool GetOriginalTitleStartEndNum(const CString &file, int &start, int &end);
 		static CString GetOriginalTitle(const CString &file);
 
@@ -43,6 +44,8 @@ public:
 		static void FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace);
 		static void DeleteTailParenthesesInfo(CString &file, const CString tbl[]);
 
+		static void FixParentheses(CString &file);
+		static void AddSpaceBwCircle2Author(CString &file);
 
 	public:
 		CFileName(){};
@@ -84,6 +87,8 @@ private:
 	bool m_fixTailParenthesesInfo_UNCENSORED_Flg;
 	bool m_deleteTailSpace_Flg;
 	bool m_addTailParentheseInfo_ORIGINAL_Flg;
+	bool m_fixParenthesis_Flg;
+	bool m_addSpaceBwCircle2Author_Flg;
 
 	BYTE m_fixTailParenthesesInfo_ORIGINAL_MODE;
 
@@ -104,6 +109,7 @@ public:
 	void SetResultName();
 	void CopyToResultName();
 	void RemoveFile(const CString &selectString, bool bResult);
+	POSITION Find(const CString &selectString) const;
 
 	CString GetFileName(const CString &selectString, bool bResult, bool bFullPath) const;
 	void SetResultFileName(const CString &selectString, bool bResult, const CString &file);
@@ -120,6 +126,8 @@ public:
 	bool isDeleteTailSpace() const { return m_deleteTailSpace_Flg; };
 	bool isAddTailParentheseInfo_ORIGINAL() const { return m_addTailParentheseInfo_ORIGINAL_Flg; };
 	BYTE GetFixTailParenthesesInfo_ORIGINAL_MODE() const { return m_fixTailParenthesesInfo_ORIGINAL_MODE; };
+	bool isFixParenthesis() const { return m_fixParenthesis_Flg; };
+	bool isAddSpaceBwCircle2Author() const { return m_addSpaceBwCircle2Author_Flg; };
 
 	//モードセット
 	void SetDeleteHeadParenthesesInfo(bool flg) { m_deleteHeadParenthesesInfo_Flg = flg; };
@@ -129,4 +137,6 @@ public:
 	void SetDeleteTailSpace(bool flg) { m_deleteTailSpace_Flg = flg; };
 	void SetAddTailParentheseInfo_ORIGINAL(bool flg) { m_addTailParentheseInfo_ORIGINAL_Flg = flg; };
 	void SetFixTailParenthesesInfo_ORIGINAL_MODE(BYTE mode) { m_fixTailParenthesesInfo_ORIGINAL_MODE = mode; };
+	void SetFixParenthesis(bool flg) { m_fixParenthesis_Flg = flg; };
+	void SetAddSpaceBwCircle2Author(bool flg) { m_addSpaceBwCircle2Author_Flg = flg; };
 };

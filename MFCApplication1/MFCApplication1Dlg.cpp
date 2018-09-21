@@ -59,6 +59,7 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON8, &CMFCApplication1Dlg::OnBnClickedButton8)
 	ON_BN_CLICKED(IDC_CHECK10, &CMFCApplication1Dlg::OnBnClickedCheck10)
 	ON_BN_CLICKED(IDC_BUTTON10, &CMFCApplication1Dlg::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON11, &CMFCApplication1Dlg::OnBnClickedButton11)
 END_MESSAGE_MAP()
 
 
@@ -84,6 +85,7 @@ BOOL CMFCApplication1Dlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_RADIO2))->SetCheck(m_fileList.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 1 ? BST_CHECKED : BST_UNCHECKED);
 
 	((CButton*)GetDlgItem(IDC_CHECK9))->SetCheck(BST_CHECKED);
+	((CButton*)GetDlgItem(IDC_CHECK11))->SetCheck(BST_CHECKED);
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -179,8 +181,11 @@ void CMFCApplication1Dlg::OnBnClickedButton2()
 	m_fileList.SetDeleteTailParenthesesInfo_DLEDITION(((CButton*)GetDlgItem(IDC_CHECK2))->GetCheck() == BST_CHECKED);
 	m_fileList.SetFixTailParenthesesInfo_UNCENSORED(((CButton*)GetDlgItem(IDC_CHECK3))->GetCheck() == BST_CHECKED);
 	m_fileList.SetFixTailParenthesesInfo_ORIGINALTITLE(((CButton*)GetDlgItem(IDC_CHECK4))->GetCheck() == BST_CHECKED);
-	m_fileList.SetDeleteTailSpace(((CButton*)GetDlgItem(IDC_CHECK5))->GetCheck() == BST_CHECKED);
 	m_fileList.SetFixTailParenthesesInfo_ORIGINAL_MODE(((CButton*)GetDlgItem(IDC_RADIO1))->GetCheck() == BST_CHECKED ? 0 : 1);
+	m_fileList.SetFixParenthesis(((CButton*)GetDlgItem(IDC_CHECK11))->GetCheck() == BST_CHECKED);
+	m_fileList.SetAddSpaceBwCircle2Author(((CButton*)GetDlgItem(IDC_CHECK12))->GetCheck() == BST_CHECKED);
+	m_fileList.SetDeleteTailSpace(((CButton*)GetDlgItem(IDC_CHECK5))->GetCheck() == BST_CHECKED);
+
 
 	{//変換
 		m_fileList.SetResultName();
@@ -312,7 +317,6 @@ void CMFCApplication1Dlg::OnBnClickedButton6()
 		pBox->GetText(sel, selectStr);
 		if( selectStr.IsEmpty() == TRUE ) break;
 
-
 		CDialog1 dlg;
 		dlg.SetNewFileName(m_fileList.GetFileName(selectStr, true, false));
 
@@ -391,4 +395,28 @@ void CMFCApplication1Dlg::OnBnClickedCheck10()
 void CMFCApplication1Dlg::OnBnClickedButton10()
 {
 	ResetList();
+}
+
+void CMFCApplication1Dlg::OnBnClickedButton11()
+{
+	UpdateData();
+	const bool bEnableFilter = ((CButton*)GetDlgItem(IDC_CHECK10))->GetCheck() == BST_CHECKED;
+
+	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+	pBox->ResetContent();
+
+	POSITION pos = m_fileList.GetList().GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
+		const CString fileNameStr = fileName.GetFileName(true);
+		if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+
+		CString author1, author2;
+		CDoujinFileRename::CFileName::GetAuthor(fileNameStr, author1, author2, false);
+		if( author2.IsEmpty() == TRUE ) continue;
+		CString authorCheck1 = author1;
+		authorCheck1.TrimRight();
+		if( author1 != authorCheck1 ) continue;
+		pBox->AddString(fileNameStr);
+	}
 }

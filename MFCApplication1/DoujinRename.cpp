@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DoujinRename.h"
 
 
@@ -54,12 +54,12 @@ void CDoujinFileRename::CThumbnailCtrl::DeleteFile()
 
 //
 // class CFileName //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//staticŠÖ˜A
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éƒT[ƒNƒ‹–¼/ìÒ‚ÌŠJn/I—¹”Ô†‚ğæ“¾
+//staticé–¢é€£
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹ã‚µãƒ¼ã‚¯ãƒ«å/ä½œè€…ã®é–‹å§‹/çµ‚äº†ç•ªå·ã‚’å–å¾—
 bool CDoujinFileRename::CFileName::GetAuthorStartEndNum(const CString &file, int &start, int &end)
 {
-	//start : Å‰‚ÉŒ©‚Â‚©‚Á‚½'['
-	//end : '['‚ªŒ©‚Â‚©‚Á‚½Œã‚Ì']'
+	//start : æœ€åˆã«è¦‹ã¤ã‹ã£ãŸ'['
+	//end : '['ãŒè¦‹ã¤ã‹ã£ãŸå¾Œã®']'
 	bool result = false;
 	do {
 		start = file.Find('[');
@@ -83,7 +83,7 @@ bool CDoujinFileRename::CFileName::GetAuthorStartEndNum(const CString &file, int
 	return true;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éƒT[ƒNƒ‹–¼/ìÒ‚ÌŠJn”Ô†‚ğæ“¾
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹ã‚µãƒ¼ã‚¯ãƒ«å/ä½œè€…ã®é–‹å§‹ç•ªå·ã‚’å–å¾—
 int CDoujinFileRename::CFileName::GetAuthorStartNum(const CString &file)
 {
 	int start = -1, end = -1;
@@ -91,7 +91,7 @@ int CDoujinFileRename::CFileName::GetAuthorStartNum(const CString &file)
 	return start;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éƒT[ƒNƒ‹–¼/ìÒ‚ÌI—¹”Ô†‚ğæ“¾
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹ã‚µãƒ¼ã‚¯ãƒ«å/ä½œè€…ã®çµ‚äº†ç•ªå·ã‚’å–å¾—
 int CDoujinFileRename::CFileName::GetAuthorEndNum(const CString &file)
 {
 	int start = -1, end = -1;
@@ -99,7 +99,7 @@ int CDoujinFileRename::CFileName::GetAuthorEndNum(const CString &file)
 	return end;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éƒT[ƒNƒ‹–¼/ìÒ‚ğæ“¾
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹ã‚µãƒ¼ã‚¯ãƒ«å/ä½œè€…ã‚’å–å¾—
 CString CDoujinFileRename::CFileName::GetAuthor(const CString &file)
 {
 	CString result = file;
@@ -118,7 +118,36 @@ CString CDoujinFileRename::CFileName::GetAuthor(const CString &file)
 	return result;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éŒ³ƒlƒ^ƒ^ƒCƒgƒ‹‚ğæ“¾
+void CDoujinFileRename::CFileName::GetAuthor(const CString &file, CString &author1, CString & author2, bool spaceTrimFlg)
+{
+	const CString author = GetAuthor(file);
+
+	const CString startStr = "(";
+	const CString endStr = ")";
+
+	const int start = author.Find(startStr);
+	const int end = author.Find(endStr);
+
+	if( start == -1 || end == -1 || start > end ) {
+		author1 = author;
+		author2.Empty();
+		return;
+	}
+
+	author1 = author;
+	author1.Delete(start, author.GetLength() - start);
+	if( spaceTrimFlg ) author1.Trim();
+
+	author2 = author;
+	author2.Delete(0, start);
+	if( spaceTrimFlg ){
+		author2.Trim();
+		author2.TrimLeft("(");
+		author2.TrimRight(")");
+	}
+}
+
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹å…ƒãƒã‚¿ã‚¿ã‚¤ãƒˆãƒ«ã‚’å–å¾—
 CString CDoujinFileRename::CFileName::GetOriginalTitle(const CString &file)
 {
 	CString result = file;
@@ -137,12 +166,12 @@ CString CDoujinFileRename::CFileName::GetOriginalTitle(const CString &file)
 	return result;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚É‚ ‚éŒ³ƒlƒ^ƒ^ƒCƒgƒ‹‚ÌŠJn/I—¹”Ô†‚ğæ“¾
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ã‚ã‚‹å…ƒãƒã‚¿ã‚¿ã‚¤ãƒˆãƒ«ã®é–‹å§‹/çµ‚äº†ç•ªå·ã‚’å–å¾—
 bool CDoujinFileRename::CFileName::GetOriginalTitleStartEndNum(const CString &file, int &start, int &end)
 {
-	//•¶š—ñ––”ö‚©‚çŒŸõ‚µ‚Ä
-	//start : Å‰‚ÉŒ©‚Â‚©‚Á‚½']'
-	//end : ']'‚ªŒ©‚Â‚©‚Á‚½Œã‚Ì'['
+	//æ–‡å­—åˆ—æœ«å°¾ã‹ã‚‰æ¤œç´¢ã—ã¦
+	//start : æœ€åˆã«è¦‹ã¤ã‹ã£ãŸ']'
+	//end : ']'ãŒè¦‹ã¤ã‹ã£ãŸå¾Œã®'['
 	bool result = false;
 	do {
 		start = file.ReverseFind('[');
@@ -166,7 +195,7 @@ bool CDoujinFileRename::CFileName::GetOriginalTitleStartEndNum(const CString &fi
 	return true;
 }
 
-//	æ“ª‚Ì()‚ÉˆÍ‚Ü‚ê‚½€–Ú‚ğíœ‚·‚é
+//	å…ˆé ­ã®()ã«å›²ã¾ã‚ŒãŸé …ç›®ã‚’å‰Šé™¤ã™ã‚‹
 void CDoujinFileRename::CFileName::DeleteHeadParenthesesInfo(CString &file)
 {
 	file.TrimLeft();
@@ -181,41 +210,64 @@ void CDoujinFileRename::CFileName::DeleteHeadParenthesesInfo(CString &file)
 	}
 }
 
-//	––”ö‚Ì(DL”Å)‚ğíœ‚·‚é
+//	ã€ã€‘ã‚’[]ã«å¤‰æ›ã™ã‚‹
+void CDoujinFileRename::CFileName::FixParentheses(CString &file)
+{
+	file.TrimLeft();
+	int count = 0;
+	while( count < 1000 ){
+		const int start = file.Find("ã€");
+		if( start == -1 ) break;
+		const int end = file.Find("ã€‘", start);
+		if( end == -1 ) break;
+		if( start > end ) break;
+
+		file.Replace("ã€", "[");
+		file.Replace("ã€‘", "]");
+		count++;
+	}
+}
+
+//ã‚µãƒ¼ã‚¯ãƒ«åã¨ä½œè€…åã®é–“ã«ã‚¹ãƒšãƒ¼ã‚¹ã‚’è¿½åŠ ã™ã‚‹
+void CDoujinFileRename::CFileName::AddSpaceBwCircle2Author(CString &file)
+{
+}
+
+//	æœ«å°¾ã®(DLç‰ˆ)ã‚’å‰Šé™¤ã™ã‚‹
 void CDoujinFileRename::CFileName::DeleteTailParenthesesInfo_DLEDITION(CString &file)
 {
-	//DL”Å
+	//DLç‰ˆ
 	const CString dl_edition[] = {
-		"(DL”Å)"
-		, "[DL”Å]"
+		"(DLç‰ˆ)"
+		, "[DLç‰ˆ]"
 		, ""
 	};
 	CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, dl_edition);
 }
 
 
-//	––”ö‚Ì(–³C³)A(–³C³”Å)‚ğ[–³C³]‚É•ÏX‚·‚é
+//	æœ«å°¾ã®(ç„¡ä¿®æ­£)ã€(ç„¡ä¿®æ­£ç‰ˆ)ã‚’[ç„¡ä¿®æ­£]ã«å¤‰æ›´ã™ã‚‹
 void CDoujinFileRename::CFileName::FixTailParenthesesInfo_UNCENSORED(CString &file)
 {
-	//–³C³
+	//ç„¡ä¿®æ­£
 	const CString unsensord[] = {
-		"(–³C³)"
-		, "(–³C³”Å)"
+		"(ç„¡ä¿®æ­£)"
+		, "(ç„¡ä¿®æ­£ç‰ˆ)"
 		, ""
 	};
-	const CString new_unsensord = "[–³C³]";
+	const CString new_unsensord = "[ç„¡ä¿®æ­£]";
 	CDoujinFileRename::CFileName::FixTailParenthesesInfo(file, unsensord, new_unsensord);
 }
 
-//	––”ö‚Ì()“à‚ÅˆÍ‚í‚ê‚½Œ´ìƒ^ƒCƒgƒ‹‚ğ[]ˆÍ‚¢‚É•ÏX‚·‚é
-//	(‚æ‚ë‚¸)‚ÍíœA(ƒIƒŠƒWƒiƒ‹)‚Íƒtƒ‰ƒOQÆ
+//	æœ«å°¾ã®()å†…ã§å›²ã‚ã‚ŒãŸåŸä½œã‚¿ã‚¤ãƒˆãƒ«ã‚’[]å›²ã„ã«å¤‰æ›´ã™ã‚‹
+//	(ã‚ˆã‚ãš)ã¯å‰Šé™¤ã€(ã‚ªãƒªã‚¸ãƒŠãƒ«)ã¯ãƒ•ãƒ©ã‚°å‚ç…§
 void CDoujinFileRename::CFileName::FixTailParenthesesInfo_ORIGINALTITLE(CString &file, bool bOriginalDelete)
 {
-	//ƒIƒŠƒWƒiƒ‹
+	//ã‚ªãƒªã‚¸ãƒŠãƒ«
 	const CString title_original[] = {
-		"(ƒIƒŠƒWƒiƒ‹)"
+		"(ã‚ªãƒªã‚¸ãƒŠãƒ«)"
 		, "(original)"
-		, "[ƒIƒŠƒWƒiƒ‹]"
+		, "[ã‚ªãƒªã‚¸ãƒŠãƒ«]"
 		, "[original]"
 		, ""
 	};
@@ -223,35 +275,54 @@ void CDoujinFileRename::CFileName::FixTailParenthesesInfo_ORIGINALTITLE(CString 
 		CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, title_original);
 	}
 	else {
-		const CString new_title_original = "[ƒIƒŠƒWƒiƒ‹]";
+		const CString new_title_original = "[ã‚ªãƒªã‚¸ãƒŠãƒ«]";
 		CDoujinFileRename::CFileName::FixTailParenthesesInfo(file, title_original, new_title_original);
 	}
 
 
-	//‚æ‚ë‚¸
+	//ã‚ˆã‚ãš
 	const CString title_yorozu[] = {
-		"(‚æ‚ë‚¸)"
+		"(ã‚ˆã‚ãš)"
 		, ""
 	};
 	CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(file, title_yorozu);
 
-	const int start = CDoujinFileRename::CFileName::GetAuthorEndNum(file);
+	int start = CDoujinFileRename::CFileName::GetAuthorEndNum(file);
 	if( start != -1 ) {
 		while( file.Find('(', start) != -1 ){
 			const int search_s = file.Find('(', start);
+			start++;
+			const int search_s2 = file.Find('(', start + 1);
 			const int search_e = file.Find(')', search_s);
 			if( search_e == -1 ) break;
 			if( search_e <= search_s ) break;
+			if( search_e > search_s2 ) continue;
 
-			file.Delete(search_s, 1);
-			file.Insert(search_s, '[');
-			file.Delete(search_e, 1);
-			file.Insert(search_e, ']');
+			//()å†…ãŒæ•°å€¤ãªã‚‰å¤‰æ›´ã—ãªã„ã€‚
+			CString check = file.Mid(search_s + 1, search_e - search_s-1);
+			CString res = check.SpanIncluding("0123456789");
+			if( res != check ){
+				file.Delete(search_s, 1);
+				file.Insert(search_s, '[');
+				file.Delete(search_e, 1);
+				file.Insert(search_e, ']');
+			}
+		}
+	}
+
+	//ãŠå°»ã®_1ã¨ã‹ã‚’æ¶ˆã™
+	start = file.ReverseFind('_');
+	if( start != -1 ) {
+		CString check = file;
+		check.Delete(0, start+1);
+		CString res = check.SpanIncluding("0123456789");
+		if( res == check ){
+			file.Delete(start, file.GetLength() - start);
 		}
 	}
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚©‚çtbl‚Åw’è‚³‚ê‚½•¶š—ñ‚ğreplace‚É’uŠ·
+//ãƒ•ã‚¡ã‚¤ãƒ«åã‹ã‚‰tblã§æŒ‡å®šã•ã‚ŒãŸæ–‡å­—åˆ—ã‚’replaceã«ç½®æ›
 void CDoujinFileRename::CFileName::FixTailParenthesesInfo(CString &file, const CString tbl[], const CString &replace)
 {
 	for( int lpcnt = 0; tbl[lpcnt].IsEmpty() == FALSE; lpcnt++ ){
@@ -264,7 +335,7 @@ void CDoujinFileRename::CFileName::FixTailParenthesesInfo(CString &file, const C
 	}
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚©‚çtbl‚Åw’è‚³‚ê‚½•¶š—ñ‚ğíœ
+//ãƒ•ã‚¡ã‚¤ãƒ«åã‹ã‚‰tblã§æŒ‡å®šã•ã‚ŒãŸæ–‡å­—åˆ—ã‚’å‰Šé™¤
 void CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(CString &file, const CString tbl[])
 {
 	for( int lpcnt = 0; tbl[lpcnt].IsEmpty() == FALSE; lpcnt++ ){
@@ -275,28 +346,31 @@ void CDoujinFileRename::CFileName::DeleteTailParenthesesInfo(CString &file, cons
 	}
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚©‚ç––”ö‚ÌƒXƒy[ƒX•¶š‚ğÁ‚·
+//ãƒ•ã‚¡ã‚¤ãƒ«åã‹ã‚‰æœ«å°¾ã®ã‚¹ãƒšãƒ¼ã‚¹æ–‡å­—ã‚’æ¶ˆã™
 void CDoujinFileRename::CFileName::DeleteTailSpace(CString &result)
 {
 	result.Trim();
 }
 
 
-//ƒtƒ@ƒCƒ‹–¼‚ğ•ÏX‚·‚é
+//ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å¤‰æ›´ã™ã‚‹
 CString CDoujinFileRename::CFileName::GetRename(const CDoujinFileRename &info) const
 {
 	CString result = m_targetFileName;
+
+	if( info.isFixParenthesis() ) FixParentheses(result);
 
 	if( info.isDeleteHeadParenthesesInfo() ) DeleteHeadParenthesesInfo(result);
 	if( info.isDeleteTailParenthesesInfo_DLEDITION() ) DeleteTailParenthesesInfo_DLEDITION(result);
 	if( info.isDeleteTailSpace() ) DeleteTailSpace(result);
 	if( info.isFixTailParenthesesInfo_UNCENSORED() ) FixTailParenthesesInfo_UNCENSORED(result);
 	if( info.isFixTailParenthesesInfo_ORIGINALTITLE() ) FixTailParenthesesInfo_ORIGINALTITLE(result, info.GetFixTailParenthesesInfo_ORIGINAL_MODE() == 0);
+	if( info.isAddSpaceBwCircle2Author() ) AddSpaceBwCircle2Author(result);
 
 	return result;
 }
 
-//ŠO•”ƒCƒ“ƒ^[ƒtƒF[ƒX“™‚Å‘I‘ğ‚³‚ê‚½•¶š—ñ‚ªAŠY“–ƒf[ƒ^‚Ì‘ÎÛ‚©‚Ç‚¤‚©
+//å¤–éƒ¨ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ç­‰ã§é¸æŠã•ã‚ŒãŸæ–‡å­—åˆ—ãŒã€è©²å½“ãƒ‡ãƒ¼ã‚¿ã®å¯¾è±¡ã‹ã©ã†ã‹
 bool CDoujinFileRename::CFileName::isSelectFile(const CString &selectString, bool bResult) const
 {
 	const CString &string = bResult ? m_resultFileName : m_targetFileName;
@@ -306,19 +380,19 @@ bool CDoujinFileRename::CFileName::isSelectFile(const CString &selectString, boo
 
 //
 // class CDoujinFileRename //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CDoujinFileRename::CDoujinFileRename()
 {
 	Initialize();
 }
 
-//ƒfƒXƒgƒ‰ƒNƒ^
+//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 CDoujinFileRename::~CDoujinFileRename()
 {
 	Initialize();
 }
 
-//‰Šú‰»
+//åˆæœŸåŒ–
 void CDoujinFileRename::Initialize()
 {
 	m_fileList.RemoveAll();
@@ -331,10 +405,13 @@ void CDoujinFileRename::Initialize()
 	m_addTailParentheseInfo_ORIGINAL_Flg = true;
 
 	m_fixTailParenthesesInfo_ORIGINAL_MODE = 1;
+
+	m_fixParenthesis_Flg = true;
+	m_addSpaceBwCircle2Author_Flg = true;
 }
 
 
-//ƒtƒ‹ƒpƒX‚©‚çƒhƒ‰ƒCƒuAƒpƒXAƒtƒ@ƒCƒ‹–¼AŠg’£q‚ğæ“¾‚·‚é
+//ãƒ•ãƒ«ãƒ‘ã‚¹ã‹ã‚‰ãƒ‰ãƒ©ã‚¤ãƒ–ã€ãƒ‘ã‚¹ã€ãƒ•ã‚¡ã‚¤ãƒ«åã€æ‹¡å¼µå­ã‚’å–å¾—ã™ã‚‹
 void CDoujinFileRename::splitpath(const CString &fullpath, CString &drive, CString &path, CString &file, CString &ext)
 {
 	CString tempfullpath = fullpath;
@@ -352,13 +429,13 @@ void CDoujinFileRename::splitpath(const CString &fullpath, CString &drive, CStri
 	ext = _ext;
 }
 
-//ƒhƒ‰ƒCƒuAƒpƒXAƒtƒ@ƒCƒ‹–¼AŠg’£q‚©‚çƒtƒ‹ƒpƒX‚ğì¬‚·‚é
+//ãƒ‰ãƒ©ã‚¤ãƒ–ã€ãƒ‘ã‚¹ã€ãƒ•ã‚¡ã‚¤ãƒ«åã€æ‹¡å¼µå­ã‹ã‚‰ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½œæˆã™ã‚‹
 void CDoujinFileRename::joinpath(CString &fullPath, const CString &drive, const CString &path, const CString &file, const CString &ext)
 {
 	CString renameFileStr;
 	fullPath = drive + path + file + ext;
 }
-//ŠY“–ƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É’Ç‰Á
+//è©²å½“ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«è¿½åŠ 
 void CDoujinFileRename::AddFileName(const CString &targetFile)
 {
 	CString file, ext;
@@ -366,9 +443,9 @@ void CDoujinFileRename::AddFileName(const CString &targetFile)
 	m_fileList.AddTail(CFileName(file, ext));
 }
 
-//ƒtƒ@ƒCƒ‹–¼
-//	n	:	ƒŠƒXƒg‚Ì”Ô†
-//	bResult	:	•ÏŠ·Œã	or ‘ÎÛƒtƒ@ƒCƒ‹
+//ãƒ•ã‚¡ã‚¤ãƒ«å
+//	n	:	ãƒªã‚¹ãƒˆã®ç•ªå·
+//	bResult	:	å¤‰æ›å¾Œ	or å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«
 CString CDoujinFileRename::GetFileName(const CString &selectString, bool bResult, bool bFullPath) const
 {
 	CString result;
@@ -404,9 +481,9 @@ void CDoujinFileRename::SetResultFileName(const CString &selectString, bool bRes
 	} while( false );
 }
 
-//ƒtƒ@ƒCƒ‹‚©‚çƒT[ƒNƒ‹–¼/ìÒ‚ğæ“¾‚·‚é
-//	n	:	ƒŠƒXƒg‚Ì”Ô†
-//	bResult	:	•ÏŠ·Œã	or ‘ÎÛƒtƒ@ƒCƒ‹
+//ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã‚µãƒ¼ã‚¯ãƒ«å/ä½œè€…ã‚’å–å¾—ã™ã‚‹
+//	n	:	ãƒªã‚¹ãƒˆã®ç•ªå·
+//	bResult	:	å¤‰æ›å¾Œ	or å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«
 CString CDoujinFileRename::GetAuthor(const CString &selectString, bool bResult) const
 {
 	CString result;
@@ -423,9 +500,9 @@ CString CDoujinFileRename::GetAuthor(const CString &selectString, bool bResult) 
 	return result;
 }
 
-//ƒtƒ@ƒCƒ‹‚©‚çŒ³ƒlƒ^ƒ^ƒCƒgƒ‹‚ğæ“¾‚·‚é
-//	n	:	ƒŠƒXƒg‚Ì”Ô†
-//	bResult	:	•ÏŠ·Œã	or ‘ÎÛƒtƒ@ƒCƒ‹
+//ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰å…ƒãƒã‚¿ã‚¿ã‚¤ãƒˆãƒ«ã‚’å–å¾—ã™ã‚‹
+//	n	:	ãƒªã‚¹ãƒˆã®ç•ªå·
+//	bResult	:	å¤‰æ›å¾Œ	or å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«
 CString CDoujinFileRename::GetOriginalTitle(const CString &selectString, bool bResult) const
 {
 	CString result;
@@ -442,15 +519,12 @@ CString CDoujinFileRename::GetOriginalTitle(const CString &selectString, bool bR
 	return result;
 }
 
-//	‘ÎÛƒtƒ@ƒCƒ‹‚ğ•ÏŠ·‚µAŒ‹‰Ê‚ğm_resultFileNameList‚ÉŠi”[‚·‚é
+//	å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å¤‰æ›ã—ã€çµæœã‚’m_resultFileNameListã«æ ¼ç´ã™ã‚‹
 void CDoujinFileRename::SetResultName()
 {
-	CStringList checkStringList;
-
 	POSITION pos = m_fileList.GetHeadPosition();
 	while( pos ){
 		CFileName &fileName = m_fileList.GetNext(pos);
-		if( !fileName.isRename() ) continue;
 		CString rename = fileName.GetRename(*this);
 
 		if( fileName.GetFileName(false) != rename ){
@@ -458,14 +532,13 @@ void CDoujinFileRename::SetResultName()
 
 			CString tempRename = rename;
 			while(count < 500 ){
-				if( checkStringList.Find(tempRename) == NULL ) break;
+				if( Find(tempRename) == NULL ) break;
 				count++;
 				tempRename.Format("%s(%d)", rename, count);
 			}
 			rename = tempRename;
 		}
 
-		checkStringList.AddTail(rename);
 		fileName.SetResultFileName(rename);
 	}
 }
@@ -489,4 +562,24 @@ void CDoujinFileRename::RemoveFile(const CString &selectString, bool bResult)
 			break;
 		}
 	} while( false );
+}
+
+POSITION CDoujinFileRename::Find(const CString &selectString) const
+{
+	POSITION result = NULL;
+	do {
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			POSITION backup = pos;
+			const CFileName &fileName = m_fileList.GetNext(pos);
+			const CString name1 = fileName.GetFileName(false);
+			const CString name2 = fileName.GetFileName(true);
+			if( name1 == selectString || name2 == selectString ){
+				result = backup;
+				break;
+			}
+		}
+	} while( false );
+
+	return result;
 }
