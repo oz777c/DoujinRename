@@ -65,6 +65,7 @@ public:
 		void ResetResultFileName() {m_resultFileName = m_targetFileName;};
 		void Rename() { m_targetFileName = m_resultFileName; };
 		void SetResultFileName(const CString &filename){ m_resultFileName = filename; };
+		CString GetRename_NewAuthor(const CString &newAuthor) const;
 
 		CFileName & operator= (const CFileName&a){
 			m_targetFileName = a.m_targetFileName;
@@ -110,6 +111,7 @@ public:
 	void CopyToResultName();
 	void RemoveFile(const CString &selectString, bool bResult);
 	POSITION Find(const CString &selectString) const;
+	void SetNewAuthor(const CString &oldAuthor, const CString &newAuthor);
 
 	CString GetFileName(const CString &selectString, bool bResult, bool bFullPath) const;
 	void SetResultFileName(const CString &selectString, bool bResult, const CString &file);

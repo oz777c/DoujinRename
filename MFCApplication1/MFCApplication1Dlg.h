@@ -18,6 +18,8 @@ class CMFCApplication1Dlg : public CDialogEx
 	CString m_withThumbnailFolder3;
 
 	void ResetList();
+	void UpdateFilterItem();
+	void UpdateRenameItem();
 
 // コンストラクション
 public:
@@ -52,4 +54,7 @@ public:
 	afx_msg void OnBnClickedCheck10();
 	afx_msg void OnBnClickedButton10();
 	afx_msg void OnBnClickedButton11();
+	afx_msg void OnBnClickedCheck13();
+	afx_msg void OnBnClickedCheck14();
+	afx_msg void OnBnClickedButton12();
 };

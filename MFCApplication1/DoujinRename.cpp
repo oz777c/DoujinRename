@@ -377,6 +377,18 @@ bool CDoujinFileRename::CFileName::isSelectFile(const CString &selectString, boo
 	return string == selectString;
 }
 
+//新しい著者名をセットしたファイル名を取得する
+CString CDoujinFileRename::CFileName::GetRename_NewAuthor(const CString &newAuthor) const
+{
+	CString result = GetFileName(false);
+	const CString author = GetAuthor();
+
+	const int sel = result.Find(author);
+	result.Delete(sel, author.GetLength());
+	result.Insert(sel, newAuthor);
+
+	return result;
+}
 
 //
 // class CDoujinFileRename //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,4 +594,33 @@ POSITION CDoujinFileRename::Find(const CString &selectString) const
 	} while( false );
 
 	return result;
+}
+
+void CDoujinFileRename::SetNewAuthor(const CString &oldAuthor, const CString &newAuthor)
+{
+	do {
+		if( oldAuthor.IsEmpty() == TRUE ) break;
+		if( oldAuthor == newAuthor ) break;
+
+		POSITION pos = m_fileList.GetHeadPosition();
+		while( pos ){
+			CFileName &fileName = m_fileList.GetNext(pos);
+			fileName.ResetResultFileName();
+			const CString author = fileName.GetAuthor();
+
+			if( oldAuthor == author ){
+				CString rename = fileName.GetRename_NewAuthor(newAuthor);
+				int count = 0;
+
+				CString tempRename = rename;
+				while( count < 500 ){
+					if( Find(tempRename) == NULL ) break;
+					count++;
+					tempRename.Format("%s(%d)", rename, count);
+				}
+				rename = tempRename;
+				fileName.SetResultFileName(rename);
+			}
+		}
+	} while( false );
 }

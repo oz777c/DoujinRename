@@ -60,6 +60,9 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK10, &CMFCApplication1Dlg::OnBnClickedCheck10)
 	ON_BN_CLICKED(IDC_BUTTON10, &CMFCApplication1Dlg::OnBnClickedButton10)
 	ON_BN_CLICKED(IDC_BUTTON11, &CMFCApplication1Dlg::OnBnClickedButton11)
+	ON_BN_CLICKED(IDC_CHECK13, &CMFCApplication1Dlg::OnBnClickedCheck13)
+	ON_BN_CLICKED(IDC_CHECK14, &CMFCApplication1Dlg::OnBnClickedCheck14)
+	ON_BN_CLICKED(IDC_BUTTON12, &CMFCApplication1Dlg::OnBnClickedButton12)
 END_MESSAGE_MAP()
 
 
@@ -86,6 +89,8 @@ BOOL CMFCApplication1Dlg::OnInitDialog()
 
 	((CButton*)GetDlgItem(IDC_CHECK9))->SetCheck(BST_CHECKED);
 	((CButton*)GetDlgItem(IDC_CHECK11))->SetCheck(BST_CHECKED);
+
+	UpdateFilterItem();
 
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
@@ -318,13 +323,24 @@ void CMFCApplication1Dlg::OnBnClickedButton6()
 		if( selectStr.IsEmpty() == TRUE ) break;
 
 		CDialog1 dlg;
-		dlg.SetNewFileName(m_fileList.GetFileName(selectStr, true, false));
 
-		if( dlg.DoModal() != IDOK ) break;
+		if( ((CButton*)GetDlgItem(IDC_CHECK13))->GetCheck() == BST_CHECKED ){
+			dlg.SetNewFileName(selectStr);
+			if( dlg.DoModal() != IDOK ) break;
 
-		m_fileList.SetResultFileName(selectStr, true, dlg.GetNewFileName());
-		pBox->DeleteString(sel);
-		pBox->InsertString(sel, dlg.GetNewFileName());
+			m_fileList.SetNewAuthor(selectStr, dlg.GetNewFileName());
+		}
+		else if(((CButton*)GetDlgItem(IDC_CHECK14))->GetCheck() == BST_CHECKED ){
+		}
+		else {
+			dlg.SetNewFileName(m_fileList.GetFileName(selectStr, true, false));
+
+			if( dlg.DoModal() != IDOK ) break;
+
+			m_fileList.SetResultFileName(selectStr, true, dlg.GetNewFileName());
+			pBox->DeleteString(sel);
+			pBox->InsertString(sel, dlg.GetNewFileName());
+		}
 	} while( false );
 }
 
@@ -378,9 +394,25 @@ void CMFCApplication1Dlg::ResetList()
 	while( pos ){
 		const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
 		const CString fileNameStr = fileName.GetFileName(true);
-		if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
 
-		pBox->AddString(fileNameStr);
+		if( ((CButton*)GetDlgItem(IDC_CHECK13))->GetCheck() == BST_CHECKED ){
+			const CString str = CDoujinFileRename::CFileName::GetAuthor(fileNameStr);
+			if( str.IsEmpty() == TRUE ) continue;
+			if( str.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+			if( pBox->FindStringExact(0, str) == -1 ) pBox->AddString(str);
+		}
+		else if( ((CButton*)GetDlgItem(IDC_CHECK14))->GetCheck() == BST_CHECKED ){
+			const CString str = CDoujinFileRename::CFileName::GetOriginalTitle(fileNameStr);
+			if( str.IsEmpty() == TRUE ) continue;
+			const CString str2 = CDoujinFileRename::CFileName::GetAuthor(fileNameStr);
+			if( str == str2 ) continue;
+			if( str.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+			if( pBox->FindStringExact(0, str) == -1 ) pBox->AddString(str);
+		}
+		else {
+			if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+			pBox->AddString(fileNameStr);
+		}
 	}
 }
 
@@ -388,6 +420,7 @@ void CMFCApplication1Dlg::ResetList()
 //フィルターON
 void CMFCApplication1Dlg::OnBnClickedCheck10()
 {
+	UpdateFilterItem();
 	ResetList();
 }
 
@@ -418,5 +451,75 @@ void CMFCApplication1Dlg::OnBnClickedButton11()
 		authorCheck1.TrimRight();
 		if( author1 != authorCheck1 ) continue;
 		pBox->AddString(fileNameStr);
+	}
+}
+
+void CMFCApplication1Dlg::UpdateFilterItem()
+{
+	bool bEnableFlg = ((CButton*)GetDlgItem(IDC_CHECK10))->GetCheck() == BST_CHECKED;
+	((CEdit*)GetDlgItem(IDC_EDIT1))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_BUTTON7))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+}
+
+void CMFCApplication1Dlg::UpdateRenameItem()
+{
+	bool bEnableFlg = !(((CButton*)GetDlgItem(IDC_CHECK13))->GetCheck() == BST_CHECKED || ((CButton*)GetDlgItem(IDC_CHECK14))->GetCheck() == BST_CHECKED);
+	
+	((CButton*)GetDlgItem(IDC_CHECK1))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK2))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK3))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK4))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK5))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK11))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_CHECK12))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+
+	((CButton*)GetDlgItem(IDC_RADIO1))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+	((CButton*)GetDlgItem(IDC_RADIO2))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+
+	((CButton*)GetDlgItem(IDC_BUTTON2))->EnableWindow(bEnableFlg ? TRUE : FALSE);
+}
+
+void CMFCApplication1Dlg::OnBnClickedCheck13()
+{
+	((CButton*)GetDlgItem(IDC_CHECK14))->SetCheck(BST_UNCHECKED);
+	UpdateRenameItem();
+	ResetList();
+}
+
+
+void CMFCApplication1Dlg::OnBnClickedCheck14()
+{
+	((CButton*)GetDlgItem(IDC_CHECK13))->SetCheck(BST_UNCHECKED);
+	UpdateRenameItem();
+	ResetList();
+}
+
+
+void CMFCApplication1Dlg::OnBnClickedButton12()
+{
+	UpdateData();
+	const bool bEnableFilter = ((CButton*)GetDlgItem(IDC_CHECK10))->GetCheck() == BST_CHECKED;
+
+	CListBox *pBox = ((CListBox*)GetDlgItem(IDC_LIST1));
+	pBox->ResetContent();
+
+	POSITION pos = m_fileList.GetList().GetHeadPosition();
+	while( pos ){
+		const CDoujinFileRename::CFileName &fileName = m_fileList.GetList().GetNext(pos);
+		const CString fileNameStr = fileName.GetFileName(true);
+		if( fileNameStr.Find(m_filterStr) == -1 && m_filterStr.IsEmpty() == FALSE && bEnableFilter ) continue;
+
+		const int end = fileNameStr.ReverseFind(')');
+		const int start = fileNameStr.ReverseFind('(');
+		if( start == -1 || end == -1 ) continue;
+
+		const int authorEnd = CDoujinFileRename::CFileName::GetAuthorEndNum(fileNameStr);
+		if( authorEnd < start && authorEnd < end && start < end ){
+
+			//()内が数値なら変更しない。
+			CString check = fileNameStr.Mid(start + 1, end - start - 1);
+			CString res = check.SpanIncluding("0123456789");
+			if( res == check ) pBox->AddString(fileNameStr);
+		}
 	}
 }
